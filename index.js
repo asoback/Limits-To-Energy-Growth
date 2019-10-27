@@ -67,25 +67,30 @@ const calculate_avg_yearly_pop_growth = (start_year = population_data.years[0]) 
         // not found, use starting index
         idx = 0;
     }
+    console.log("start year = ", population_data.years[idx]);
     let pop_change_percent_array = [];
-    let last_seen_data_point = 0;
-    population_data.world_population_total.forEach(function(data_point) {
-        if (last_seen_data_point <= 0) {
-            last_seen_data_point = data_point;
-        } else {
-            const this_percent = (data_point/last_seen_data_point ) - 1;
-            pop_change_percent_array.push(this_percent);
-            last_seen_data_point = data_point;
-        }
-    });
+    let last_seen_data_point = population_data.world_population_total[idx];
+    idx += 1;
+    while (idx < population_data.years.length) {
+        const data_point = population_data.world_population_total[idx];
+        const this_percent = (data_point/last_seen_data_point ) - 1;
+        pop_change_percent_array.push(this_percent);
+        last_seen_data_point = data_point;
+        idx += 1;
+    }
+    if (pop_change_percent_array.length === 0) {
+        return 0;
+    }
     let total_percent = 0;
     pop_change_percent_array.forEach(function(percent_point) {
         total_percent += percent_point;
     });
-    return (total_percent/(pop_change_percent_array.length -1)) * 100;
+    return (total_percent/(pop_change_percent_array.length)) * 100;
 };
 const avg_pop_growth_percent = calculate_avg_yearly_pop_growth();
 console.log('Avg Pop Growth: ', avg_pop_growth_percent, '%');
+
+console.log('And in 2017-2018: (1.10% according to web) ', calculate_avg_yearly_pop_growth("2017"));
 
 // avg renewable growth yearly
 const calculate_avg_renewables_growth_yearly = (start_year = energy_data.years[0]) => {
