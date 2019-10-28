@@ -65,3 +65,24 @@ export const population_data = {
             7255653881, 7340548192,	7426103221,	7510990456,	7594270356],
     source: 'https://data.worldbank.org/indicator/SP.POP.TOTL',
 };
+
+export const non_renewable_reserves = {
+    oil: {
+        proven: 1660,
+        prospective: -1,
+        unit: 'Billion Barrels',
+        source: 'EIA.gov',
+    },
+    natural_gas: {
+        proven: 6922,
+        prospective: -1,
+        unit: 'Trillion Cubic Feet',
+        source: 'EIA.gov',
+    },
+    coal: {
+        proven: 1144238,
+        prospective: -1,
+        unit: 'Million Short Tons',
+        source: 'EIA.gov',
+    },
+};
