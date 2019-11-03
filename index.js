@@ -2,31 +2,34 @@ import { energy_data, population_data } from './data.js';
 
 
 // Generate Chart
-var ctx = document.getElementById('myChart').getContext('2d');
-var chart = new Chart(ctx, {
-    // The type of chart we want to create
-    type: 'line',
+const generateChart = () => {
+    var ctx = document.getElementById('myChart').getContext('2d');
+    var chart = new Chart(ctx, {
+        // The type of chart we want to create
+        type: 'line',
 
-    // The data for our dataset
-    data: {
-        labels: energy_data.years,
-        datasets: [
-            { label: 'Total Renewable Energy Consumption',
-            backgroundColor: 'rgb(99, 255, 132)',
-            borderColor: 'rgb(99, 255, 132)',
-            data: energy_data.total_renewables_consumption.data,
-            },
-            {
-            label: 'Total Primary Energy Consumption',
-            backgroundColor: 'rgb(255, 99, 132)',
-            borderColor: 'rgb(255, 99, 132)',
-            data: energy_data.total_primary_energy_consumption.data,
-        }
-        ]
-    },
-    // Configuration options go here
-    options: {}
-});	
+        // The data for our dataset
+        data: {
+            labels: energy_data.years,
+            datasets: [
+                { label: 'Total Renewable Energy Consumption',
+                backgroundColor: 'rgb(99, 255, 132)',
+                borderColor: 'rgb(99, 255, 132)',
+                data: energy_data.total_renewables_consumption.data,
+                },
+                {
+                label: 'Total Primary Energy Consumption',
+                backgroundColor: 'rgb(255, 99, 132)',
+                borderColor: 'rgb(255, 99, 132)',
+                data: energy_data.total_primary_energy_consumption.data,
+            }
+            ]
+        },
+        // Configuration options go here
+        options: {}
+    });	
+};
+
 
 // Calculating percents of things
 
@@ -178,3 +181,69 @@ console.log("avg yearly energy consumption growth since 2017: ", avg_energy_in_2
 
 const avg_since_1960 = calculate_energy_per_person_growth("1960");
 console.log("avg yearly energy consumption growth since 1960: ", avg_since_1960);
+
+const get_years_array = (size, start_year) => {
+    let years = [];
+    for (let i = 0; i < size; i++) {
+        const x = i + start_year;
+        years.push(x.toString());
+    }
+    return years;
+};
+
+const modeling_population_growth = (num_years, starting_pop, carrying_cap, rate) => {
+    // See https://en.wikipedia.org/wiki/Logistic_function
+
+    let pops = [];
+    const e = 2.71828;
+    let last_pop = starting_pop;
+    for (let i = 0; i < num_years; i+= 1) {
+        const pop_growth = last_pop*rate*(1-((last_pop-starting_pop)/(carrying_cap - starting_pop)));
+        pops.push(Math.round(last_pop + pop_growth));
+        last_pop = pops[i];
+    }
+    return pops;
+};
+
+// Generate Chart
+const experimentalChart = () => {
+    // make years
+    const num_years = 250;
+    const years = get_years_array(num_years, 1960);
+    const less_years = 2018 - 1960;
+    // make pop values
+    const starting_pop = 7594270356;
+    const carrying_cap = 25000000000;
+    const starting_rate =  calculate_avg_yearly_pop_growth('2017');
+    console.log("starting at ", starting_rate);
+    const predicted_pop_data = modeling_population_growth(num_years - less_years, starting_pop, carrying_cap, starting_rate * 0.01);
+    const pop_data = population_data.world_population_total;
+    const whole_pop_data = pop_data.concat(predicted_pop_data);
+    var ctx = document.getElementById('myChart').getContext('2d');
+    var chart = new Chart(ctx, {
+        // The type of chart we want to create
+        type: 'line',
+
+        // The data for our dataset
+        data: {
+            labels: years,
+            datasets: [
+                {
+                    label: 'Real Populations',
+                    borderColor: 'rgb(99, 255, 132)',
+                    data: population_data.world_population_total
+                    
+                },
+                {
+                    label: 'Projected Population',
+                    borderColor: 'rgb(255, 99, 132)',
+                    data: whole_pop_data
+                }
+            ]
+        },
+        // Configuration options go here
+        options: {}
+    });	
+};
+
+experimentalChart();
