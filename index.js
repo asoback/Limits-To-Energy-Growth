@@ -1,5 +1,7 @@
-import { energy_data, population_data } from './data.js';
+import { energy_data, population_data, non_renewable_reserves } from './data.js';
 
+const pop_num_years_input = document.getElementById("num_years");
+const pop_carrying_cap_input = document.getElementById("max_pop");
 
 // Generate Chart
 const generateChart = () => {
@@ -206,14 +208,12 @@ const modeling_population_growth = (num_years, starting_pop, carrying_cap, rate)
 };
 
 // Generate Chart
-const experimentalChart = () => {
+const experimentalChart = (num_years, carrying_cap) => {
     // make years
-    const num_years = 250;
     const years = get_years_array(num_years, 1960);
     const less_years = 2018 - 1960;
     // make pop values
     const starting_pop = 7594270356;
-    const carrying_cap = 25000000000;
     const starting_rate =  calculate_avg_yearly_pop_growth('2017');
     console.log("starting at ", starting_rate);
     const predicted_pop_data = modeling_population_growth(num_years - less_years, starting_pop, carrying_cap, starting_rate * 0.01);
@@ -229,7 +229,7 @@ const experimentalChart = () => {
             labels: years,
             datasets: [
                 {
-                    label: 'Real Populations',
+                    label: 'Real Population',
                     borderColor: 'rgb(99, 255, 132)',
                     data: population_data.world_population_total
                     
@@ -246,4 +246,35 @@ const experimentalChart = () => {
     });	
 };
 
-experimentalChart();
+experimentalChart(250, 10000000000);
+
+const recalculate_pop_predictions = () => {
+    const num_years = pop_num_years_input.value;
+    const carrying_cap = pop_carrying_cap_input.value * 1000000000;
+    experimentalChart(num_years, carrying_cap);
+};
+
+pop_num_years_input.onchange = recalculate_pop_predictions;
+pop_carrying_cap_input.onchange = recalculate_pop_predictions;
+
+// 1 barrel of oil is approx 5.8 Million BTUs
+const convert_barrels_oil_to_quad_btu = (barrels) => {
+    // The units of barrels are in billions, the return value is in quadrillions
+    // A million billion is a quadrillion.
+    return (barrels * 5.8);
+};
+
+const remaining_oil_btus = convert_barrels_oil_to_quad_btu(non_renewable_reserves.oil.proven);
+
+console.log("There are ", remaining_oil_btus, 'Quadrillion BTUs remaining oil'); 
+
+const convert_natural_gas_to_btu = (cubic_feet) => {
+    // 1015 btus in a cubic foot of natural gas
+    // data is in a trillion cubic feet
+    // return value is in Quadrillion Btus
+    return cubic_feet * 1.015;
+};
+
+console.log("There are ", convert_natural_gas_to_btu(non_renewable_reserves.natural_gas.proven), "Quadrillion BTUs remaining gas");
+
+// In 2018, the annual average heat content of coal produced in the United States was about 20.15 million British thermal units (Btu) per short ton (2,000 pounds
