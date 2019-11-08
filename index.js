@@ -17,13 +17,13 @@ const generateChart = () => {
                 { label: 'Total Renewable Energy Consumption',
                 backgroundColor: 'rgb(99, 255, 132)',
                 borderColor: 'rgb(99, 255, 132)',
-                data: energy_data.total_renewables_consumption.data,
+                data: energy_data.total_renewables_consumption,
                 },
                 {
                 label: 'Total Primary Energy Consumption',
                 backgroundColor: 'rgb(255, 99, 132)',
                 borderColor: 'rgb(255, 99, 132)',
-                data: energy_data.total_primary_energy_consumption.data,
+                data: energy_data.total_primary_energy_consumption,
             }
             ]
         },
@@ -45,7 +45,7 @@ const calculate_total_energy_growth_percent = (start_year = energy_data.years[0]
 
     let total_percent_array = [];
     let last_seen_data_point = 0;
-    energy_data.total_primary_energy_consumption.data.forEach(function(data_point) {
+    energy_data.total_primary_energy_consumption.forEach(function(data_point) {
         if (last_seen_data_point == 0) {
             last_seen_data_point = data_point;
         } else {
@@ -107,7 +107,7 @@ const calculate_avg_renewables_growth_yearly = (start_year = energy_data.years[0
 
     let total_renewable_percent_array = [];
     let last_seen_data_point = 0;
-    energy_data.total_renewables_consumption.data.forEach(function(data_point) {
+    energy_data.total_renewables_consumption.forEach(function(data_point) {
         if (last_seen_data_point <= 0) {
             last_seen_data_point = data_point;
         } else {
@@ -137,7 +137,7 @@ const calculate_avg_energy_consumpter_per_person =
     }
     const energy_idx = energy_data.years.indexOf(start_year);
 
-    const total_energy_2018 = energy_data.total_primary_energy_consumption.data[
+    const total_energy_2018 = energy_data.total_primary_energy_consumption[
             energy_idx];
     const total_pop_2018 = population_data.world_population_total[
             pop_idx];
@@ -277,4 +277,24 @@ const convert_natural_gas_to_btu = (cubic_feet) => {
 
 console.log("There are ", convert_natural_gas_to_btu(non_renewable_reserves.natural_gas.proven), "Quadrillion BTUs remaining gas");
 
-// In 2018, the annual average heat content of coal produced in the United States was about 20.15 million British thermal units (Btu) per short ton (2,000 pounds
+// In 2018, the annual average heat content of coal produced in the United States was about 
+// 20.15 million British thermal units (Btu) per short ton (2,000 pounds)
+// Data ub million short tons
+
+const convert_coal_to_btu = (short_tons) => {
+    return (20.15 * Math.pow(10, 6) *  Math.pow(10, 6) * short_tons) / Math.pow(10, 15); 
+};
+
+console.log("There are ", convert_coal_to_btu(non_renewable_reserves.coal.proven), " quadrillion BTUS remain coal");
+
+const get_remaining_btus = () => {
+    return convert_coal_to_btu(non_renewable_reserves.coal.proven) +
+        convert_natural_gas_to_btu(non_renewable_reserves.natural_gas.proven) +
+        convert_barrels_oil_to_quad_btu(non_renewable_reserves.oil.proven);
+};
+
+const remaining_total = get_remaining_btus();
+const last_year_total = energy_data.total_primary_energy_consumption[ energy_data.total_primary_energy_consumption.length -1];
+console.log("last year spent ", last_year_total);
+console.log("Total: ", remaining_total, " Quadrillion BTUs remain");
+console.log("Thats ", remaining_total/last_year_total, " years left");
