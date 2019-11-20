@@ -5,7 +5,7 @@ const pop_carrying_cap_input = document.getElementById("max_pop");
 
 // Generate Chart
 const generateChart = () => {
-    var ctx = document.getElementById('myChart').getContext('2d');
+    var ctx = document.getElementById('historicalChart').getContext('2d');
     var chart = new Chart(ctx, {
         // The type of chart we want to create
         type: 'line',
@@ -219,7 +219,7 @@ const experimentalChart = (num_years, carrying_cap) => {
     const predicted_pop_data = modeling_population_growth(num_years - less_years, starting_pop, carrying_cap, starting_rate * 0.01);
     const pop_data = population_data.world_population_total;
     const whole_pop_data = pop_data.concat(predicted_pop_data);
-    var ctx = document.getElementById('myChart').getContext('2d');
+    var ctx = document.getElementById('PopulationChart').getContext('2d');
     var chart = new Chart(ctx, {
         // The type of chart we want to create
         type: 'line',
