@@ -1,4 +1,4 @@
-import { energy_data, population_data, non_renewable_reserves } from './data.js';
+import { energy_data, population_data, non_renewable_reserves, discoveries_data } from './data.js';
 
 const pop_num_years_input = document.getElementById("num_years");
 const pop_carrying_cap_input = document.getElementById("max_pop");
@@ -14,17 +14,17 @@ const generateChart = () => {
         data: {
             labels: energy_data.years,
             datasets: [
+                {
+                label: 'Total Primary Energy Consumption',
+                backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                borderColor: 'rgb(255, 99, 132)',
+                data: energy_data.total_primary_energy_consumption,
+                },
                 { label: 'Total Renewable Energy Consumption',
-                backgroundColor: 'rgb(99, 255, 132)',
+                backgroundColor: 'rgba(99, 255, 132, 0.5)',
                 borderColor: 'rgb(99, 255, 132)',
                 data: energy_data.total_renewables_consumption,
                 },
-                {
-                label: 'Total Primary Energy Consumption',
-                backgroundColor: 'rgb(255, 99, 132)',
-                borderColor: 'rgb(255, 99, 132)',
-                data: energy_data.total_primary_energy_consumption,
-            }
             ]
         },
         // Configuration options go here
@@ -298,3 +298,33 @@ const last_year_total = energy_data.total_primary_energy_consumption[ energy_dat
 console.log("last year spent ", last_year_total);
 console.log("Total: ", remaining_total, " Quadrillion BTUs remain");
 console.log("Thats ", remaining_total/last_year_total, " years left");
+
+const chart_discoveries = () => {
+    var ctx = document.getElementById('myChart').getContext('2d');
+    var chart = new Chart(ctx, {
+        // The type of chart we want to create
+        type: 'line',
+
+        // The data for our dataset
+        data: {
+            labels: discoveries_data.years,
+            datasets: [
+                { label: 'Oil New Discoveries',
+                backgroundColor: 'rgb(99, 255, 132)',
+                borderColor: 'rgb(99, 255, 132)',
+                data: discoveries_data.oil_new_discoveries,
+                },
+                {
+                label: 'Natural Gas Discoveries',
+                backgroundColor: 'rgb(255, 99, 132)',
+                borderColor: 'rgb(255, 99, 132)',
+                data: discoveries_data.natural_gas_discoveries,
+            }
+            ]
+        },
+        // Configuration options go here
+        options: {}
+    });	
+};
+
+chart_discoveries();
