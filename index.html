@@ -7,15 +7,90 @@
     <script type="module" src="./index.js"></script>
 </head>
 <body>
+	<!-- Title, brief description, historical chart -->
+	<div>
+		<h1>How Long Do We Have Left</h1>
+		<h6>Working on the title</h6>
+		<p>Here's how much oil the US Government <sup><a href="">[1]</a></sup></p> says that the whole world has used since like the 50s.
+		<div style="width:800px">
+			<canvas class="chart" id="historicalChart"></canvas>
+		</div>
+		<hr>
+	</div>
+	</div>
+	<!-- what we have left chart -->
+	<div>
+		<p>When scientists<sup><a href="">[1]</a></sup>, the government<sup><a href="">[2]</a></sup>, or others say things like </p>
+		<quote>At current rates of use, we have about 52 years of oil left</quote>
+		<p>This is what that looks like, graphed</p>
+		<div style="width:800px">
+			<canvas class="chart" id="flatConsumptionChart"></canvas>
+		</div>
+		<hr>
+	</div>
 
-<div style="width:800px">
-<canvas id="myChart"></canvas>
-</div>
-<div>
-    <label for="num_years">Number of Years</label>
-    <input id="num_years" type="number" value="250" step="50">
-    <label for="max_pop">Population Carrying Capacity (Billions)</label>
-    <input id="max_pop" type="number" value="10">
-</div>
+	<!--  Here's what it might look like with prediction -->
+	<div>
+		<p>Making a few assumptions about the future, I can think about what the new few hundred years might look like</p>
+		<p>One line is the demand, the other colors represent....</p>
+		<div style="width:800px">
+			<canvas class="chart" id="myPredictionChart"></canvas>
+		</div>
+		<hr>
+	</div>
+
+	<!-- Explore Assumptions -->
+	<div>
+		<h3>Let's explore some of those assumptions</h3>
+	</div>
+
+	<!-- How could population affect this -->
+	<div>
+		<h3>Population</h3>
+		<p>Some people think the population will just level out at 10 Billion in just a few short years.</p>
+		<p>Others think maybe it'll get to 11, or 12 Billion.</p>
+		<p>Some people think we'll overshoot and our population will have to fall back down to something more sustainable.</p>
+		<p>Still some think our Earthly population could skyrocket much higher.</p>
+		<div style="width:800px">
+			<canvas class="chart" id="PopulationChart"></canvas>
+		</div>
+		<div>
+		    <label for="num_years">Number of Years</label>
+		    <input id="num_years" type="number" value="250" step="50">
+		    <label for="max_pop">Population Carrying Capacity (Billions)</label>
+		    <input id="max_pop" type="number" value="10">
+		</div>
+		<hr>
+	</div>
+
+	<!-- Peak demand per person -->
+	<div>
+		
+	</div>
+
+	<!-- Myth of infinite energy growth on Earth -->
+	<div>
+		
+	</div>
+
+	<!-- Growth of renewables and nuclear -->
+	<div>
+		
+	</div>
+
+	<!-- How much renewables are undiscovered -->
+	<div>
+		
+	</div>
+
+	<!-- Conclusion -->
+	<div>
+		
+	</div>
+
+	<!-- Full chart tuner -->
+	<div>
+		
+	</div>
 </body>
 </html>
