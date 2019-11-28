@@ -34,12 +34,6 @@ const generateHistoricalChart = () => {
     data.labels = energy_data.years;
     data.datasets = [
         {
-            label: 'Total Primary Energy Consumption',
-            backgroundColor: 'rgba(255, 99, 132, 0.5)',
-            borderColor: 'rgb(255, 99, 132)',
-            data: energy_data.total_primary_energy_consumption,
-        },
-        {
             label: 'Total Nuclear Energy Consumption',
             backgroundColor: 'rgba(132, 99, 255, 0.5)',
             borderColor: 'rgb(132, 99, 255)',
@@ -51,14 +45,184 @@ const generateHistoricalChart = () => {
             borderColor: 'rgb(99, 255, 132)',
             data: energy_data.total_renewables_consumption,
         },
+        {
+            label: 'Total Fossil Fuel Consumption',
+            backgroundColor: 'rgba(255, 99, 132, 0.5)',
+            borderColor: 'rgb(255, 99, 132)',
+            data: energy_data.Total_Fossil_Fuels_Consumption,
+        },
     ];
-    generateChart(historicalChart, data);
+    const options = {
+        scales: {
+            yAxes: [{
+                stacked: true
+            }]
+        }
+    };
+    generateChart(historicalChart, data, 'line', options);
 };
 
 generateHistoricalChart();
 
 // Flat Consumption
+const getFlatConsumptionArray = (amount, rate) => {
+    const useArray = [];
+    let amountRemaining = amount;
+    while (amountRemaining > 0) {
+        const annualUse = Math.min(rate, amountRemaining);
+        amountRemaining -= annualUse;
+        useArray.push(annualUse);
+    }
+    return useArray;
+};
 
+const zeroFillArrayBack = (array, length) => {
+    const zerosArray = [];
+    if (array.length >= length) {
+        return array;
+    } else {
+        for (let i = 0; i < length - array.length; i++) {
+            zerosArray.push(0);
+        }
+    }
+    const newArray = array.concat(zerosArray);
+    return newArray;
+};
+
+const steadyIncreaseConsumption = (startingAmount, rate, years) => {
+    const array = [];
+    let previousAmount = startingAmount;
+    for (let i = 0; i < years; i++) {
+        previousAmount = previousAmount * rate;
+        array.push(previousAmount);
+    }
+    return array;
+};
+
+const expandDataWithSteadyIncreaseConsumption = (data, yearsToGrow) => {
+    const startingAmount = data[data.length - 1];
+    if (data.length < 2) {
+        return data;
+    }
+    const lastRate = (data[data.length - 1] - data[data.length - 2])/data[data.length - 2];
+    const predictionArray = steadyIncreaseConsumption(startingAmount, lastRate, yearsToGrow);
+    return data.concat(predictionArray);
+};
+
+// 1 barrel of oil is approx 5.8 Million BTUs
+const convert_barrels_oil_to_quad_btu = (barrels) => {
+    // The units of barrels are in billions, the return value is in quadrillions
+    // A million billion is a quadrillion.
+    return (barrels * 5.8);
+};
+
+const convert_natural_gas_to_btu = (cubic_feet) => {
+    // 1015 btus in a cubic foot of natural gas
+    // data is in a trillion cubic feet
+    // return value is in Quadrillion Btus
+    return cubic_feet * 1.015;
+};
+
+const convert_coal_to_btu = (short_tons) => {
+    return (20.15 * Math.pow(10, 6) *  Math.pow(10, 6) * short_tons) / Math.pow(10, 15); 
+};
+
+const yearsPlusMoreYears = (yearsArray, extraYears) => {
+    let newYearsArray = yearsArray;
+    let yearAsNumber = Number(yearsArray[yearsArray.length - 1]);
+    for (let i = 0; i < extraYears; i++) {
+        yearAsNumber += 1;
+        newYearsArray.push(yearAsNumber.toString(10));
+    }
+    return newYearsArray;
+};
+
+const generateFlatConsumtionChart = () => {
+    // Divide up data by type
+    let years = energy_data.years;
+    let coal = energy_data.Coal_Consumption;
+    let oil = energy_data.Petroleum_Consumption;
+    let natural_gas = energy_data.Natural_Gas_Consumption;
+    let renewables = energy_data.total_renewables_consumption;
+    let nuclear = energy_data.Nuclear_Electric_Power_Consumption;
+    // Add data at flat rate or less until 0d
+    // oil
+    const btuRemainingOil = convert_barrels_oil_to_quad_btu(non_renewable_reserves.oil);
+    const lastOilRate = oil[oil.length - 1];
+    let flatConsumptionOil = getFlatConsumptionArray(btuRemainingOil, lastOilRate);
+    let longestLen = flatConsumptionOil.length;
+    // coal
+    const btuRemainingCoal = convert_coal_to_btu(non_renewable_reserves.coal);
+    const lastCoalRate = coal[coal.length - 1];
+    let flatConsumptionCoal = getFlatConsumptionArray(btuRemainingCoal, lastCoalRate);
+    longestLen = Math.max(longestLen, flatConsumptionCoal.length);
+    // gas
+    const btuRemainingNaturalGas = convert_natural_gas_to_btu(non_renewable_reserves.natural_gas);
+    const lastNaturalGasRate = natural_gas[natural_gas.length - 1];
+    let flatConsumptionGas = getFlatConsumptionArray(btuRemainingNaturalGas, lastNaturalGasRate);
+    longestLen = Math.max(longestLen, flatConsumptionGas.length);
+
+    // Additional chart space
+    const extraYears = 10;
+    longestLen = longestLen + extraYears;
+
+    // zero fill
+    flatConsumptionOil = zeroFillArrayBack(flatConsumptionOil, longestLen);
+    flatConsumptionCoal = zeroFillArrayBack(flatConsumptionCoal, longestLen);
+    flatConsumptionGas = zeroFillArrayBack(flatConsumptionGas, longestLen);
+    // increase steadily renewables and nuclear
+    renewables = expandDataWithSteadyIncreaseConsumption(renewables, longestLen);
+    nuclear = expandDataWithSteadyIncreaseConsumption(nuclear, longestLen);
+    // get years
+    const fullYearsArray = yearsPlusMoreYears(years, longestLen);
+
+    // chart
+    const data = {};
+    data.labels = fullYearsArray;
+    data.datasets = [
+        {
+            label: "Oil Consumption",
+            backgroundColor: 'rgba(82, 50, 29, 0.5)',
+            borderColor: 'rgb(82, 50, 29)',
+            data: flatConsumptionOil
+        },
+        {
+            label: "Natural Gas Consumption",
+            backgroundColor: 'rgba(148, 118, 0, 0.5)',
+            borderColor: 'rgb(148, 118, 0)',
+            data: flatConsumptionGas
+        },
+        {
+            label: "Coal Consumption",
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            borderColor: 'rgb(0, 0, 0)',
+            data: flatConsumptionCoal
+        },
+        {
+            label: "Nuclear Consumption",
+            backgroundColor: 'rgba(0, 43, 161, 0.5)',
+            borderColor: 'rgb(0, 43, 161)',
+            data: nuclear
+        },
+        {
+            label: "Renewables Consumption",
+            backgroundColor: 'rgba(0, 161, 5, 0.5)',
+            borderColor: 'rgb(0, 161, 5)',
+            data: renewables
+        },
+    ];
+    const options = {
+        scales: {
+            yAxes: [{
+                stacked: true
+            }]
+        }
+    };
+    generateChart(flatConsumptionChart, data, 'line', options);
+
+};
+
+generateFlatConsumtionChart();
 
 // My Prediction
 
@@ -87,7 +251,6 @@ const calculate_avg_yearly_pop_growth = (start_year = population_data.years[0]) 
         // not found, use starting index
         idx = 0;
     }
-    console.log("start year = ", population_data.years[idx]);
     let pop_change_percent_array = [];
     let last_seen_data_point = population_data.world_population_total[idx];
     idx += 1;
@@ -216,14 +379,14 @@ const calculate_total_energy_growth_percent = (start_year = energy_data.years[0]
     return (total_percent/(total_percent_array.length)) * 100;
       
 };
-const avg_total_growth_percent = calculate_total_energy_growth_percent();
-console.log('Total Energy Growth Avg Percent: ', avg_total_growth_percent, '%');
+// const avg_total_growth_percent = calculate_total_energy_growth_percent();
+// console.log('Total Energy Growth Avg Percent: ', avg_total_growth_percent, '%');
 
 
-const avg_pop_growth_percent = calculate_avg_yearly_pop_growth();
-console.log('Avg Pop Growth: ', avg_pop_growth_percent, '%');
+// const avg_pop_growth_percent = calculate_avg_yearly_pop_growth();
+// console.log('Avg Pop Growth: ', avg_pop_growth_percent, '%');
 
-console.log('And in 2017-2018: (1.10% according to web) ', calculate_avg_yearly_pop_growth("2017"));
+// console.log('And in 2017-2018: (1.10% according to web) ', calculate_avg_yearly_pop_growth("2017"));
 
 // avg renewable growth yearly
 const calculate_avg_renewables_growth_yearly = (start_year = energy_data.years[0]) => {
@@ -251,9 +414,9 @@ const calculate_avg_renewables_growth_yearly = (start_year = energy_data.years[0
     return (total_percent/(total_renewable_percent_array.length)) * 100;
 };
 
-const avg_renewable_growth_percent = calculate_avg_renewables_growth_yearly();
-console.log('Total Renwable Energy Growth Avg Percent: ',
-        avg_renewable_growth_percent, '%');
+// const avg_renewable_growth_percent = calculate_avg_renewables_growth_yearly();
+// console.log('Total Renwable Energy Growth Avg Percent: ',
+        // avg_renewable_growth_percent, '%');
 
 // avg energy per person 2018
 const calculate_avg_energy_consumpter_per_person =
@@ -272,8 +435,8 @@ const calculate_avg_energy_consumpter_per_person =
     return total_energy_2018/total_pop_2018;
 };
 
-const avg_energy_per_person_2018 = calculate_avg_energy_consumpter_per_person() * 1000000000;
-console.log("Energy per person 2018: ", avg_energy_per_person_2018, "Million BTUs");
+// const avg_energy_per_person_2018 = calculate_avg_energy_consumpter_per_person() * 1000000000;
+// console.log("Energy per person 2018: ", avg_energy_per_person_2018, "Million BTUs");
 
 // avg growth energy per person yearly
 const calculate_energy_per_person_growth = 
@@ -306,42 +469,26 @@ const calculate_energy_per_person_growth =
     return return_val;
 };
 
-const avg_energy_in_2018 = calculate_energy_per_person_growth("2017");
-console.log("avg yearly energy consumption growth since 2017: ", avg_energy_in_2018);
+// const avg_energy_in_2018 = calculate_energy_per_person_growth("2017");
+// console.log("avg yearly energy consumption growth since 2017: ", avg_energy_in_2018);
 
-const avg_since_1960 = calculate_energy_per_person_growth("1960");
-console.log("avg yearly energy consumption growth since 1960: ", avg_since_1960);
+// const avg_since_1960 = calculate_energy_per_person_growth("1960");
+// console.log("avg yearly energy consumption growth since 1960: ", avg_since_1960);
 
 
-// 1 barrel of oil is approx 5.8 Million BTUs
-const convert_barrels_oil_to_quad_btu = (barrels) => {
-    // The units of barrels are in billions, the return value is in quadrillions
-    // A million billion is a quadrillion.
-    return (barrels * 5.8);
-};
+// const remaining_oil_btus = convert_barrels_oil_to_quad_btu(non_renewable_reserves.oil.proven);
 
-const remaining_oil_btus = convert_barrels_oil_to_quad_btu(non_renewable_reserves.oil.proven);
+// console.log("There are ", remaining_oil_btus, 'Quadrillion BTUs remaining oil'); 
 
-console.log("There are ", remaining_oil_btus, 'Quadrillion BTUs remaining oil'); 
-
-const convert_natural_gas_to_btu = (cubic_feet) => {
-    // 1015 btus in a cubic foot of natural gas
-    // data is in a trillion cubic feet
-    // return value is in Quadrillion Btus
-    return cubic_feet * 1.015;
-};
-
-console.log("There are ", convert_natural_gas_to_btu(non_renewable_reserves.natural_gas.proven), "Quadrillion BTUs remaining gas");
+// console.log("There are ", convert_natural_gas_to_btu(non_renewable_reserves.natural_gas.proven), "Quadrillion BTUs remaining gas");
 
 // In 2018, the annual average heat content of coal produced in the United States was about 
 // 20.15 million British thermal units (Btu) per short ton (2,000 pounds)
 // Data ub million short tons
 
-const convert_coal_to_btu = (short_tons) => {
-    return (20.15 * Math.pow(10, 6) *  Math.pow(10, 6) * short_tons) / Math.pow(10, 15); 
-};
 
-console.log("There are ", convert_coal_to_btu(non_renewable_reserves.coal.proven), " quadrillion BTUS remain coal");
+
+// console.log("There are ", convert_coal_to_btu(non_renewable_reserves.coal.proven), " quadrillion BTUS remain coal");
 
 const get_remaining_btus = () => {
     return convert_coal_to_btu(non_renewable_reserves.coal.proven) +
@@ -351,9 +498,9 @@ const get_remaining_btus = () => {
 
 const remaining_total = get_remaining_btus();
 const last_year_total = energy_data.total_primary_energy_consumption[ energy_data.total_primary_energy_consumption.length -1];
-console.log("last year spent ", last_year_total);
-console.log("Total: ", remaining_total, " Quadrillion BTUs remain");
-console.log("Thats ", remaining_total/last_year_total, " years left");
+// console.log("last year spent ", last_year_total);
+// console.log("Total: ", remaining_total, " Quadrillion BTUs remain");
+// console.log("Thats ", remaining_total/last_year_total, " years left");
 
 const chart_discoveries = () => {
     var ctx = document.getElementById('myChart').getContext('2d');
