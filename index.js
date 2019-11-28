@@ -1,10 +1,164 @@
 import { energy_data, population_data, non_renewable_reserves, discoveries_data } from './data.js';
 
+// Utilities
+const get_years_array = (size, start_year) => {
+    let years = [];
+    for (let i = 0; i < size; i++) {
+        const x = i + start_year;
+        years.push(x.toString());
+    }
+    return years;
+};
+
+
+const historicalChart = document.getElementById('historicalChart');
+const flatConsumptionChart = document.getElementById('flatConsumptionChart');
+const myPredictionChart = document.getElementById('myPredictionChart');
+const PopulationChart = document.getElementById('PopulationChart');
 const pop_num_years_input = document.getElementById("num_years");
 const pop_carrying_cap_input = document.getElementById("max_pop");
 
+const generateChart = (chartDiv, data, type = 'line', options = {}) => {
+    let ctx = chartDiv.getContext('2d');
+    let chart = new Chart(ctx, {
+        type: type,
+        data: data,
+        options: options
+    });	
+};
+
+
+// Historical
+const generateHistoricalChart = () => {
+    const data = {};
+    data.labels = energy_data.years;
+    data.datasets = [
+        {
+            label: 'Total Primary Energy Consumption',
+            backgroundColor: 'rgba(255, 99, 132, 0.5)',
+            borderColor: 'rgb(255, 99, 132)',
+            data: energy_data.total_primary_energy_consumption,
+        },
+        {
+            label: 'Total Nuclear Energy Consumption',
+            backgroundColor: 'rgba(132, 99, 255, 0.5)',
+            borderColor: 'rgb(132, 99, 255)',
+            data: energy_data.Nuclear_Electric_Power_Consumption,
+        },
+        { 
+            label: 'Total Renewable Energy Consumption',
+            backgroundColor: 'rgba(99, 255, 132, 0.5)',
+            borderColor: 'rgb(99, 255, 132)',
+            data: energy_data.total_renewables_consumption,
+        },
+    ];
+    generateChart(historicalChart, data);
+};
+
+generateHistoricalChart();
+
+// Flat Consumption
+
+
+// My Prediction
+
+
+//
+// Population
+//
+
+const modeling_population_growth = (num_years, starting_pop, carrying_cap, rate) => {
+    // See https://en.wikipedia.org/wiki/Logistic_function
+    let pops = [];
+    // const e = 2.71828;
+    let last_pop = starting_pop;
+    for (let i = 0; i < num_years; i+= 1) {
+        const pop_growth = last_pop*rate*(1-((last_pop-starting_pop)/(carrying_cap - starting_pop)));
+        pops.push(Math.round(last_pop + pop_growth));
+        last_pop = pops[i];
+    }
+    return pops;
+};
+
+// avg pop growth yearly
+const calculate_avg_yearly_pop_growth = (start_year = population_data.years[0]) => {
+    let idx = population_data.years.indexOf(start_year);
+    if (idx < 0) {
+        // not found, use starting index
+        idx = 0;
+    }
+    console.log("start year = ", population_data.years[idx]);
+    let pop_change_percent_array = [];
+    let last_seen_data_point = population_data.world_population_total[idx];
+    idx += 1;
+    while (idx < population_data.years.length) {
+        const data_point = population_data.world_population_total[idx];
+        const this_percent = (data_point/last_seen_data_point ) - 1;
+        pop_change_percent_array.push(this_percent);
+        last_seen_data_point = data_point;
+        idx += 1;
+    }
+    if (pop_change_percent_array.length === 0) {
+        return 0;
+    }
+    let total_percent = 0;
+    pop_change_percent_array.forEach(function(percent_point) {
+        total_percent += percent_point;
+    });
+    return (total_percent/(pop_change_percent_array.length)) * 100;
+};
+
 // Generate Chart
-const generateChart = () => {
+const generatePopulationChart = (num_years, carrying_cap) => {
+    const data = {};
+    // make years
+    data.labels = get_years_array(num_years, 1960);
+    
+    // Calculate predicted populations
+    const less_years = 2018 - 1960; // No predictions for data we'll see.
+    const starting_pop = 7594270356; // Latest data
+    // Latest year growth rate
+    const starting_rate =  calculate_avg_yearly_pop_growth('2017');
+    // Actual population data
+    const predicted_pop_data = modeling_population_growth(num_years - less_years, starting_pop, carrying_cap, starting_rate * 0.01);
+    const pop_data = population_data.world_population_total;
+    const whole_pop_data = pop_data.concat(predicted_pop_data);
+    data.datasets = [
+        {
+            label: 'Real Population',
+            borderColor: 'rgb(99, 255, 132)',
+            data: population_data.world_population_total
+        },
+        {
+            label: 'Projected Population',
+            borderColor: 'rgb(255, 99, 132)',
+            data: whole_pop_data
+        }
+    ];
+    generateChart(PopulationChart, data);
+};
+
+// Initial Chart (10 Billion prediction)
+generatePopulationChart(250, 10000000000);
+
+// Bind buttons
+const recalculate_pop_predictions = () => {
+    const num_years = pop_num_years_input.value;
+    const carrying_cap = pop_carrying_cap_input.value * 1000000000;
+    generatePopulationChart(num_years, carrying_cap);
+};
+
+pop_num_years_input.onchange = recalculate_pop_predictions;
+pop_carrying_cap_input.onchange = recalculate_pop_predictions;
+
+
+//
+// Prev
+//
+
+
+// Generate Chart
+const generateChart2 = () => {
     var ctx = document.getElementById('historicalChart').getContext('2d');
     var chart = new Chart(ctx, {
         // The type of chart we want to create
@@ -65,33 +219,7 @@ const calculate_total_energy_growth_percent = (start_year = energy_data.years[0]
 const avg_total_growth_percent = calculate_total_energy_growth_percent();
 console.log('Total Energy Growth Avg Percent: ', avg_total_growth_percent, '%');
 
-// avg pop growth yearly
-const calculate_avg_yearly_pop_growth = (start_year = population_data.years[0]) => {
-    let idx = population_data.years.indexOf(start_year);
-    if (idx < 0) {
-        // not found, use starting index
-        idx = 0;
-    }
-    console.log("start year = ", population_data.years[idx]);
-    let pop_change_percent_array = [];
-    let last_seen_data_point = population_data.world_population_total[idx];
-    idx += 1;
-    while (idx < population_data.years.length) {
-        const data_point = population_data.world_population_total[idx];
-        const this_percent = (data_point/last_seen_data_point ) - 1;
-        pop_change_percent_array.push(this_percent);
-        last_seen_data_point = data_point;
-        idx += 1;
-    }
-    if (pop_change_percent_array.length === 0) {
-        return 0;
-    }
-    let total_percent = 0;
-    pop_change_percent_array.forEach(function(percent_point) {
-        total_percent += percent_point;
-    });
-    return (total_percent/(pop_change_percent_array.length)) * 100;
-};
+
 const avg_pop_growth_percent = calculate_avg_yearly_pop_growth();
 console.log('Avg Pop Growth: ', avg_pop_growth_percent, '%');
 
@@ -184,78 +312,6 @@ console.log("avg yearly energy consumption growth since 2017: ", avg_energy_in_2
 const avg_since_1960 = calculate_energy_per_person_growth("1960");
 console.log("avg yearly energy consumption growth since 1960: ", avg_since_1960);
 
-const get_years_array = (size, start_year) => {
-    let years = [];
-    for (let i = 0; i < size; i++) {
-        const x = i + start_year;
-        years.push(x.toString());
-    }
-    return years;
-};
-
-const modeling_population_growth = (num_years, starting_pop, carrying_cap, rate) => {
-    // See https://en.wikipedia.org/wiki/Logistic_function
-
-    let pops = [];
-    const e = 2.71828;
-    let last_pop = starting_pop;
-    for (let i = 0; i < num_years; i+= 1) {
-        const pop_growth = last_pop*rate*(1-((last_pop-starting_pop)/(carrying_cap - starting_pop)));
-        pops.push(Math.round(last_pop + pop_growth));
-        last_pop = pops[i];
-    }
-    return pops;
-};
-
-// Generate Chart
-const experimentalChart = (num_years, carrying_cap) => {
-    // make years
-    const years = get_years_array(num_years, 1960);
-    const less_years = 2018 - 1960;
-    // make pop values
-    const starting_pop = 7594270356;
-    const starting_rate =  calculate_avg_yearly_pop_growth('2017');
-    console.log("starting at ", starting_rate);
-    const predicted_pop_data = modeling_population_growth(num_years - less_years, starting_pop, carrying_cap, starting_rate * 0.01);
-    const pop_data = population_data.world_population_total;
-    const whole_pop_data = pop_data.concat(predicted_pop_data);
-    var ctx = document.getElementById('PopulationChart').getContext('2d');
-    var chart = new Chart(ctx, {
-        // The type of chart we want to create
-        type: 'line',
-
-        // The data for our dataset
-        data: {
-            labels: years,
-            datasets: [
-                {
-                    label: 'Real Population',
-                    borderColor: 'rgb(99, 255, 132)',
-                    data: population_data.world_population_total
-                    
-                },
-                {
-                    label: 'Projected Population',
-                    borderColor: 'rgb(255, 99, 132)',
-                    data: whole_pop_data
-                }
-            ]
-        },
-        // Configuration options go here
-        options: {}
-    });	
-};
-
-experimentalChart(250, 10000000000);
-
-const recalculate_pop_predictions = () => {
-    const num_years = pop_num_years_input.value;
-    const carrying_cap = pop_carrying_cap_input.value * 1000000000;
-    experimentalChart(num_years, carrying_cap);
-};
-
-pop_num_years_input.onchange = recalculate_pop_predictions;
-pop_carrying_cap_input.onchange = recalculate_pop_predictions;
 
 // 1 barrel of oil is approx 5.8 Million BTUs
 const convert_barrels_oil_to_quad_btu = (barrels) => {
@@ -327,4 +383,4 @@ const chart_discoveries = () => {
     });	
 };
 
-chart_discoveries();
+// chart_discoveries();
