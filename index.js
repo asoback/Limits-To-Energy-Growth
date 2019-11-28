@@ -113,6 +113,7 @@ const expandDataWithSteadyIncreaseConsumption = (data, yearsToGrow) => {
 const convert_barrels_oil_to_quad_btu = (barrels) => {
     // The units of barrels are in billions, the return value is in quadrillions
     // A million billion is a quadrillion.
+    console.log(barrels);
     return (barrels * 5.8);
 };
 
@@ -147,17 +148,18 @@ const generateFlatConsumtionChart = () => {
     let nuclear = energy_data.Nuclear_Electric_Power_Consumption;
     // Add data at flat rate or less until 0d
     // oil
-    const btuRemainingOil = convert_barrels_oil_to_quad_btu(non_renewable_reserves.oil);
+    const btuRemainingOil = convert_barrels_oil_to_quad_btu(non_renewable_reserves.oil.proven);
     const lastOilRate = oil[oil.length - 1];
     let flatConsumptionOil = getFlatConsumptionArray(btuRemainingOil, lastOilRate);
+    console.log(btuRemainingOil, lastOilRate);
     let longestLen = flatConsumptionOil.length;
     // coal
-    const btuRemainingCoal = convert_coal_to_btu(non_renewable_reserves.coal);
+    const btuRemainingCoal = convert_coal_to_btu(non_renewable_reserves.coal.proven);
     const lastCoalRate = coal[coal.length - 1];
     let flatConsumptionCoal = getFlatConsumptionArray(btuRemainingCoal, lastCoalRate);
     longestLen = Math.max(longestLen, flatConsumptionCoal.length);
     // gas
-    const btuRemainingNaturalGas = convert_natural_gas_to_btu(non_renewable_reserves.natural_gas);
+    const btuRemainingNaturalGas = convert_natural_gas_to_btu(non_renewable_reserves.natural_gas.proven);
     const lastNaturalGasRate = natural_gas[natural_gas.length - 1];
     let flatConsumptionGas = getFlatConsumptionArray(btuRemainingNaturalGas, lastNaturalGasRate);
     longestLen = Math.max(longestLen, flatConsumptionGas.length);
