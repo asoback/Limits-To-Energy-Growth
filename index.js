@@ -201,6 +201,14 @@ const yearsPlusMoreYears = (yearsArray, extraYears) => {
     return newYearsArray;
 };
 
+const addWithNonRenewables = (primary, secondary) => {
+    const a = [];
+    for (let i = 0; i < primary.length; i++) {
+        a.push(Math.round(primary[i] + (secondary[i] || 0)));
+    }
+    return a;
+};
+
 const generateFlatConsumtionChart = (renewables_rate_change) => {
     // Divide up data by type
     let years = array_of_years_start_to_end(1980, 2016);
@@ -235,6 +243,7 @@ const generateFlatConsumtionChart = (renewables_rate_change) => {
     flatConsumptionCoal = zeroFillArrayBack(flatConsumptionCoal, longestLen);
     flatConsumptionGas = zeroFillArrayBack(flatConsumptionGas, longestLen);
     // increase steadily renewables and nuclear
+    const primary_energy =  addWithNonRenewables(getData(1980, 2016, globalPrimaryConsumption), renewables);
     renewables = expandDataWithSteadyIncreaseConsumption(renewables, longestLen - years.length - 10, renewables_rate_change);
     // get years
     const fullYearsArray = yearsPlusMoreYears(years, longestLen - years.length - 10);
@@ -243,7 +252,7 @@ const generateFlatConsumtionChart = (renewables_rate_change) => {
     // Calculate Demand
     
     const demand = expandDataWithSteadyIncreaseConsumption(
-        getData(1980, 2016, globalPrimaryConsumption),
+        primary_energy,
         years.length - 10,
         demand_rate_input.value * 0.01
     );
@@ -309,7 +318,12 @@ const generateFlatConsumtionChart = (renewables_rate_change) => {
         }
     };
     generateChart(flatConsumptionChart, data, 'line', options);
-
+    console.log('coal', flatConsumptionCoal[0]);
+    console.log('gas', flatConsumptionGas[0]);
+    console.log('oil', flatConsumptionOil[0]);
+    console.log('Q renew', renewables[0]);
+    console.log('Q demand', demand[0]);
+    console.log('total',flatConsumptionCoal[0] + flatConsumptionGas[0] + flatConsumptionOil[0] + renewables[0]);
 };
 
 generateFlatConsumtionChart(renewables_rate_input.value * 0.01);
