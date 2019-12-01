@@ -209,6 +209,14 @@ const addWithNonRenewables = (primary, secondary) => {
     return a;
 };
 
+const roundArray = (a) => {
+    const b = [];
+    for (let i = 0; i < a.length; i++) {
+        b.push(Math.round(a[i]));
+    }
+    return b;
+};
+
 const generateFlatConsumtionChart = (renewables_rate_change) => {
     // Divide up data by type
     let years = array_of_years_start_to_end(1980, 2016);
@@ -216,6 +224,7 @@ const generateFlatConsumtionChart = (renewables_rate_change) => {
     let oil = getData(1980, 2016, globalOilConsumption);
     let natural_gas = getData(1980, 2016, globalNaturalGasConsumption);
     let renewables =  getData(1980, 2016, globalNuclearAndRenewableConsumption);
+    renewables = roundArray(renewables);
     // Add data at flat rate or less until 0d
     // oil
     const btuRemainingOil = convert_barrels_oil_to_quad_btu(non_renewable_reserves.oil.proven);
@@ -318,12 +327,10 @@ const generateFlatConsumtionChart = (renewables_rate_change) => {
         }
     };
     generateChart(flatConsumptionChart, data, 'line', options);
-    console.log('coal', flatConsumptionCoal[0]);
-    console.log('gas', flatConsumptionGas[0]);
-    console.log('oil', flatConsumptionOil[0]);
+    console.log('fossil', flatConsumptionCoal[0] +  flatConsumptionGas[0] +flatConsumptionOil[0]);
     console.log('Q renew', renewables[0]);
     console.log('Q demand', demand[0]);
-    console.log('total',flatConsumptionCoal[0] + flatConsumptionGas[0] + flatConsumptionOil[0] + renewables[0]);
+    console.log('total', + renewables[0]);
 };
 
 generateFlatConsumtionChart(renewables_rate_input.value * 0.01);
@@ -336,7 +343,137 @@ demand_rate_input.onchange = () => {
     generateFlatConsumtionChart(renewables_rate_input.value * 0.01);
 };
 
+
 // My Prediction
+const getDecliningConsumptionArray = (remaining, starting_amount, starting_growth_rate) => {
+    const a = [];
+    let last_amount = starting_amount;
+    let last_remaining = remaining;
+    console.log("TODO fix this section");
+    while (last_remaining >= 10) {
+        console.log(last_amount, last_remaining);
+        last_amount = last_amount + (last_amount * starting_growth_rate * last_remaining/remaining);
+        a.push(last_amount);
+        last_remaining = last_remaining - last_amount;
+    }
+    return a;
+};
+
+
+const generateMyPredictionChart = (renewables_rate_change) => {
+    // Divide up data by type
+    let years = array_of_years_start_to_end(1980, 2016);
+    let coal = getData(1980, 2016, globalCoalConsumption);
+    let oil = getData(1980, 2016, globalOilConsumption);
+    let natural_gas = getData(1980, 2016, globalNaturalGasConsumption);
+    let renewables =  getData(1980, 2016, globalNuclearAndRenewableConsumption);
+    renewables = roundArray(renewables);
+    // Add data at flat rate or less until 0d
+    // oil
+    const btuRemainingOil = convert_barrels_oil_to_quad_btu(non_renewable_reserves.oil.proven);
+    const lastOilRate = oil[oil.length - 1];
+    let flatConsumptionOil = oil.concat(getDecliningConsumptionArray(btuRemainingOil, lastOilRate, renewables_rate_input.value * 0.01));
+    let longestLen = flatConsumptionOil.length;
+
+    // coal
+    const btuRemainingCoal = convert_coal_to_btu(non_renewable_reserves.coal.proven);
+    const lastCoalRate = coal[coal.length - 1];
+    let flatConsumptionCoal = coal.concat(getDecliningConsumptionArray(btuRemainingCoal, lastCoalRate, renewables_rate_input.value * 0.01));
+    longestLen = Math.max(longestLen, flatConsumptionCoal.length);
+    // gas
+    const btuRemainingNaturalGas = convert_natural_gas_to_btu(non_renewable_reserves.natural_gas.proven);
+    const lastNaturalGasRate = natural_gas[natural_gas.length - 1];
+    let flatConsumptionGas = natural_gas.concat(getDecliningConsumptionArray(btuRemainingNaturalGas, lastNaturalGasRate, renewables_rate_input.value * 0.01));
+    longestLen = Math.max(longestLen, flatConsumptionGas.length);
+
+    // Additional chart space
+    const extraYears = 10;
+    longestLen = longestLen + extraYears;
+
+    // zero fill
+    flatConsumptionOil = zeroFillArrayBack(flatConsumptionOil, longestLen);
+    flatConsumptionCoal = zeroFillArrayBack(flatConsumptionCoal, longestLen);
+    flatConsumptionGas = zeroFillArrayBack(flatConsumptionGas, longestLen);
+    // increase steadily renewables and nuclear
+    const primary_energy =  addWithNonRenewables(getData(1980, 2016, globalPrimaryConsumption), renewables);
+    renewables = expandDataWithSteadyIncreaseConsumption(renewables, longestLen - years.length - 10, renewables_rate_change);
+    // get years
+    const fullYearsArray = yearsPlusMoreYears(years, longestLen - years.length - 10);
+
+
+    // Calculate Demand
+    
+    const demand = expandDataWithSteadyIncreaseConsumption(
+        primary_energy,
+        years.length - 10,
+        demand_rate_input.value * 0.01
+    );
+
+    const n = Math.max(renewables[renewables.length -1], demand[demand.length - 1]);
+    const max_ticks = Math.ceil((n)/100)*100;
+    
+    // chart
+    const data = {};
+    data.labels = fullYearsArray;
+    data.datasets = [
+        {
+            label: "Coal Consumption",
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            borderColor: 'rgb(0, 0, 0)',
+            data: flatConsumptionCoal
+        },
+        {
+            label: "Natural Gas Consumption",
+            backgroundColor: 'rgba(148, 118, 0, 0.5)',
+            borderColor: 'rgb(148, 118, 0)',
+            data: flatConsumptionGas
+        },
+        {
+            label: "Oil Consumption",
+            backgroundColor: 'rgba(82, 50, 29, 0.5)',
+            borderColor: 'rgb(82, 50, 29)',
+            data: flatConsumptionOil
+        },
+        {
+            label: "Renewables Consumption",
+            backgroundColor: 'rgba(0, 161, 5, 0.5)',
+            borderColor: 'rgb(0, 161, 5)',
+            data: renewables
+        },
+        {
+            label: "Demand",
+            yAxisID: 'demand_line',
+            backgroundColor: 'rgba(255, 120, 250, 0.2)',
+            borderColor: 'rgb(255, 120, 250)',
+            data: demand
+        }
+    ];
+    const options = {
+        scales: {
+            yAxes: [{
+                stacked: true,
+                ticks: {
+                    beginAtZero: true,
+                    min: 0,
+                    max: max_ticks
+                },
+            },{
+                id: 'demand_line',
+                stacked: false,
+                display: false, // ticks on y axis
+                ticks: {
+                    beginAtZero: true,
+                    min: 0,
+                    max: max_ticks
+                },
+            }]
+        }
+    };
+    generateChart(myPredictionChart, data, 'line', options);
+};
+
+generateMyPredictionChart(renewables_rate_input.value * 0.01);
+
 
 
 //
