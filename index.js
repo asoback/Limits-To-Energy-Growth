@@ -1,4 +1,5 @@
 import { energy_data, population_data, non_renewable_reserves, discoveries_data } from './data.js';
+import { globalPrimaryConsumption, globalOilConsumption, globalCoalConsumption, globalNaturalGasConsumption, globalNuclearAndRenewableConsumption} from './GlobalConsumption.js';
 
 // Utilities
 const get_years_array = (size, start_year) => {
@@ -10,6 +11,10 @@ const get_years_array = (size, start_year) => {
     return years;
 };
 
+const array_of_years_start_to_end = (start, end) => {
+    const size = end - start + 1;
+    return get_years_array(size, start);
+};
 
 const historicalChart = document.getElementById('historicalChart');
 const flatConsumptionChart = document.getElementById('flatConsumptionChart');
@@ -17,6 +22,7 @@ const myPredictionChart = document.getElementById('myPredictionChart');
 const PopulationChart = document.getElementById('PopulationChart');
 const pop_num_years_input = document.getElementById("num_years");
 const pop_carrying_cap_input = document.getElementById("max_pop");
+const renewables_rate_input = document.getElementById("renewables_rate");
 
 const generateChart = (chartDiv, data, type = 'line', options = {}) => {
     let ctx = chartDiv.getContext('2d');
@@ -27,29 +33,90 @@ const generateChart = (chartDiv, data, type = 'line', options = {}) => {
     });	
 };
 
+const convertMillionBarrelsDayToQBTU = (data) => {
+    const a = [];
+    for (let i = 0; i < data.length; i++) {
+        // 1 million barrel oil = .00555136 quad btu
+        a.push(Math.round(data[i] * 365 * 0.00000555));
+        if (i == 0) {
+            console.log(data[i], "*", 365, "=", data[i] * 365);
+            console.log("times .00000555 =", Math.round(data[i] * 365 * 0.00000555));
+        }
+    }
+    return a;
+};
+
+const convertMillionShortTonsToQBTU = (data) => {
+    const a = [];
+    for (let i = 0; i < data.length; i++) {
+        //TODO check if ton is same as short ton.
+        // 1 million ton coal = .02778 quad btu
+        a.push(Math.round(data[i] * 0.00002778));
+    }
+    return a;
+};
+
+const convertBcfToQBTU = (data) => {
+    const a = [];
+    for (let i = 0; i < data.length; i++) {
+        // Billion cubicfeet gas = .001027 quad btu
+        a.push(Math.round(data[i] * 0.001027));
+    }
+    return a;
+};
+
+
+const getData = (start_year, end_year, dataset) => {
+    const start_idx = dataset.years.indexOf(start_year);
+    const end_idx = dataset.years.indexOf(end_year);
+    if (start_idx == -1 || end_idx == -1) {
+        console.log("out of range", dataset.type);
+        return [];
+    }
+
+    if (dataset.unit == 'quad Btu') {
+        return dataset.data.slice(start_idx, end_idx+1);
+    } else if (dataset.unit == 'Mb/d') {
+        return convertMillionBarrelsDayToQBTU(dataset.data.slice(start_idx, end_idx+1));
+    } else if (dataset.unit == 'Mst') {
+        return convertMillionShortTonsToQBTU(dataset.data.slice(start_idx, end_idx+1));
+    } else if (dataset.unit == 'bcf') {
+        return convertBcfToQBTU(dataset.data.slice(start_idx, end_idx+1));
+    } else {
+        console.log('Unknown unit type', dataset.unit, dataset.type);
+        return [];
+    }
+};
+
 
 // Historical
 const generateHistoricalChart = () => {
     const data = {};
-    data.labels = energy_data.years;
+    data.labels = array_of_years_start_to_end(1980, 2016);
     data.datasets = [
         {
-            label: 'Total Nuclear Energy Consumption',
-            backgroundColor: 'rgba(132, 99, 255, 0.5)',
-            borderColor: 'rgb(132, 99, 255)',
-            data: energy_data.Nuclear_Electric_Power_Consumption,
+            label: 'Total Nuclear and Renewable Energy Consumption',
+            backgroundColor: 'rgba(0, 181, 30, 0.5)',
+            borderColor: 'rgb(0, 181, 30)',
+            data: getData(1980, 2016, globalNuclearAndRenewableConsumption),
         },
         { 
-            label: 'Total Renewable Energy Consumption',
-            backgroundColor: 'rgba(99, 255, 132, 0.5)',
-            borderColor: 'rgb(99, 255, 132)',
-            data: energy_data.total_renewables_consumption,
+            label: 'Total Coal Consumption',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            borderColor: 'rgb(0, 0, 0)',
+            data: getData(1980, 2016, globalCoalConsumption),
         },
         {
-            label: 'Total Fossil Fuel Consumption',
-            backgroundColor: 'rgba(255, 99, 132, 0.5)',
-            borderColor: 'rgb(255, 99, 132)',
-            data: energy_data.Total_Fossil_Fuels_Consumption,
+            label: 'Total Gas Consumption',
+            backgroundColor: 'rgba(196, 170, 0, 0.5)',
+            borderColor: 'rgb(196, 170, 0)',
+            data: getData(1980, 2016, globalNaturalGasConsumption),
+        },
+        {
+            label: 'Total Oil Consumption',
+            backgroundColor: 'rgba(64, 37, 29, 0.5)',
+            borderColor: 'rgb(64, 37, 29)',
+            data: getData(1980, 2016, globalOilConsumption),
         },
     ];
     const options = {
@@ -66,6 +133,7 @@ generateHistoricalChart();
 
 // Flat Consumption
 const getFlatConsumptionArray = (amount, rate) => {
+    console.log("amount", amount, "rate", rate, "years", amount/rate);
     const useArray = [];
     let amountRemaining = amount;
     while (amountRemaining > 0) {
@@ -90,30 +158,32 @@ const zeroFillArrayBack = (array, length) => {
 };
 
 const steadyIncreaseConsumption = (startingAmount, rate, years) => {
+    console.log("rate", rate);
     const array = [];
     let previousAmount = startingAmount;
     for (let i = 0; i < years; i++) {
-        previousAmount = previousAmount * rate;
+        previousAmount = previousAmount * (1 + rate);
         array.push(previousAmount);
     }
     return array;
 };
 
-const expandDataWithSteadyIncreaseConsumption = (data, yearsToGrow) => {
+const expandDataWithSteadyIncreaseConsumption = (data, yearsToGrow, rate = 0) => {
+    // console.log(rate);
     const startingAmount = data[data.length - 1];
     if (data.length < 2) {
         return data;
     }
-    const lastRate = (data[data.length - 1] - data[data.length - 2])/data[data.length - 2];
-    const predictionArray = steadyIncreaseConsumption(startingAmount, lastRate, yearsToGrow);
+    // const lastRate = (data[data.length - 1] - data[data.length - 2])/data[data.length - 2];
+    const predictionArray = steadyIncreaseConsumption(startingAmount, rate, yearsToGrow);
     return data.concat(predictionArray);
 };
 
-// 1 barrel of oil is approx 5.8 Million BTUs
+// 1 barrel of oil is approx 5.7 Million BTUs
 const convert_barrels_oil_to_quad_btu = (barrels) => {
     // The units of barrels are in billions, the return value is in quadrillions
     // A million billion is a quadrillion.
-    console.log(barrels);
+    console.log("QBTU Oil", barrels * 5.7);
     return (barrels * 5.8);
 };
 
@@ -138,55 +208,56 @@ const yearsPlusMoreYears = (yearsArray, extraYears) => {
     return newYearsArray;
 };
 
-const generateFlatConsumtionChart = () => {
+const generateFlatConsumtionChart = (renewables_rate_change) => {
     // Divide up data by type
-    let years = energy_data.years;
-    let coal = energy_data.Coal_Consumption;
-    let oil = energy_data.Petroleum_Consumption;
-    let natural_gas = energy_data.Natural_Gas_Consumption;
-    let renewables = energy_data.total_renewables_consumption;
-    let nuclear = energy_data.Nuclear_Electric_Power_Consumption;
+    let years = array_of_years_start_to_end(1980, 2016);
+    let coal = getData(1980, 2016, globalCoalConsumption);
+    let oil = getData(1980, 2016, globalOilConsumption);
+    let natural_gas = getData(1980, 2016, globalNaturalGasConsumption);
+    let renewables =  getData(1980, 2016, globalNuclearAndRenewableConsumption);
     // Add data at flat rate or less until 0d
     // oil
     const btuRemainingOil = convert_barrels_oil_to_quad_btu(non_renewable_reserves.oil.proven);
     const lastOilRate = oil[oil.length - 1];
-    let flatConsumptionOil = getFlatConsumptionArray(btuRemainingOil, lastOilRate);
-    console.log(btuRemainingOil, lastOilRate);
+    let flatConsumptionOil = oil.concat(getFlatConsumptionArray(btuRemainingOil, lastOilRate));
     let longestLen = flatConsumptionOil.length;
+    console.log("len", longestLen);
     // coal
     const btuRemainingCoal = convert_coal_to_btu(non_renewable_reserves.coal.proven);
     const lastCoalRate = coal[coal.length - 1];
-    let flatConsumptionCoal = getFlatConsumptionArray(btuRemainingCoal, lastCoalRate);
+    let flatConsumptionCoal = coal.concat(getFlatConsumptionArray(btuRemainingCoal, lastCoalRate));
     longestLen = Math.max(longestLen, flatConsumptionCoal.length);
+    console.log("len", longestLen);
     // gas
     const btuRemainingNaturalGas = convert_natural_gas_to_btu(non_renewable_reserves.natural_gas.proven);
     const lastNaturalGasRate = natural_gas[natural_gas.length - 1];
-    let flatConsumptionGas = getFlatConsumptionArray(btuRemainingNaturalGas, lastNaturalGasRate);
+    let flatConsumptionGas = natural_gas.concat(getFlatConsumptionArray(btuRemainingNaturalGas, lastNaturalGasRate));
     longestLen = Math.max(longestLen, flatConsumptionGas.length);
+    console.log("len", longestLen);
 
     // Additional chart space
     const extraYears = 10;
     longestLen = longestLen + extraYears;
+    console.log("len", longestLen);
 
     // zero fill
     flatConsumptionOil = zeroFillArrayBack(flatConsumptionOil, longestLen);
     flatConsumptionCoal = zeroFillArrayBack(flatConsumptionCoal, longestLen);
     flatConsumptionGas = zeroFillArrayBack(flatConsumptionGas, longestLen);
     // increase steadily renewables and nuclear
-    renewables = expandDataWithSteadyIncreaseConsumption(renewables, longestLen);
-    nuclear = expandDataWithSteadyIncreaseConsumption(nuclear, longestLen);
+    renewables = expandDataWithSteadyIncreaseConsumption(renewables, longestLen - years.length - 10, renewables_rate_change);
     // get years
-    const fullYearsArray = yearsPlusMoreYears(years, longestLen);
+    const fullYearsArray = yearsPlusMoreYears(years, longestLen - years.length - 10);
 
     // chart
     const data = {};
     data.labels = fullYearsArray;
     data.datasets = [
         {
-            label: "Oil Consumption",
-            backgroundColor: 'rgba(82, 50, 29, 0.5)',
-            borderColor: 'rgb(82, 50, 29)',
-            data: flatConsumptionOil
+            label: "Coal Consumption",
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            borderColor: 'rgb(0, 0, 0)',
+            data: flatConsumptionCoal
         },
         {
             label: "Natural Gas Consumption",
@@ -195,16 +266,10 @@ const generateFlatConsumtionChart = () => {
             data: flatConsumptionGas
         },
         {
-            label: "Coal Consumption",
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            borderColor: 'rgb(0, 0, 0)',
-            data: flatConsumptionCoal
-        },
-        {
-            label: "Nuclear Consumption",
-            backgroundColor: 'rgba(0, 43, 161, 0.5)',
-            borderColor: 'rgb(0, 43, 161)',
-            data: nuclear
+            label: "Oil Consumption",
+            backgroundColor: 'rgba(82, 50, 29, 0.5)',
+            borderColor: 'rgb(82, 50, 29)',
+            data: flatConsumptionOil
         },
         {
             label: "Renewables Consumption",
@@ -224,7 +289,12 @@ const generateFlatConsumtionChart = () => {
 
 };
 
-generateFlatConsumtionChart();
+generateFlatConsumtionChart(renewables_rate_input.value * 0.01);
+
+renewables_rate_input.onchange = () => {
+    console.log(renewables_rate_input.value);
+    generateFlatConsumtionChart(renewables_rate_input.value * 0.01);
+};
 
 // My Prediction
 

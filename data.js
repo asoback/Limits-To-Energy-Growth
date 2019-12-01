@@ -206,7 +206,7 @@ export const population_data = {
 
 export const non_renewable_reserves = {
     oil: {
-        proven: 1660, 
+        proven: 1688, 
         prospective: -1, 
         unit: 'Billion Barrels', 
         source: 'EIA.gov', 
