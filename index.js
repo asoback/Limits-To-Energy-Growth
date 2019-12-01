@@ -23,6 +23,8 @@ const PopulationChart = document.getElementById('PopulationChart');
 const pop_num_years_input = document.getElementById("num_years");
 const pop_carrying_cap_input = document.getElementById("max_pop");
 const renewables_rate_input = document.getElementById("renewables_rate");
+const demand_rate_input =  document.getElementById("demand_rate");
+
 
 const generateChart = (chartDiv, data, type = 'line', options = {}) => {
     let ctx = chartDiv.getContext('2d');
@@ -38,10 +40,6 @@ const convertMillionBarrelsDayToQBTU = (data) => {
     for (let i = 0; i < data.length; i++) {
         // 1 million barrel oil = .00555136 quad btu
         a.push(Math.round(data[i] * 365 * 0.00000555));
-        if (i == 0) {
-            console.log(data[i], "*", 365, "=", data[i] * 365);
-            console.log("times .00000555 =", Math.round(data[i] * 365 * 0.00000555));
-        }
     }
     return a;
 };
@@ -133,7 +131,6 @@ generateHistoricalChart();
 
 // Flat Consumption
 const getFlatConsumptionArray = (amount, rate) => {
-    console.log("amount", amount, "rate", rate, "years", amount/rate);
     const useArray = [];
     let amountRemaining = amount;
     while (amountRemaining > 0) {
@@ -158,7 +155,6 @@ const zeroFillArrayBack = (array, length) => {
 };
 
 const steadyIncreaseConsumption = (startingAmount, rate, years) => {
-    console.log("rate", rate);
     const array = [];
     let previousAmount = startingAmount;
     for (let i = 0; i < years; i++) {
@@ -169,12 +165,10 @@ const steadyIncreaseConsumption = (startingAmount, rate, years) => {
 };
 
 const expandDataWithSteadyIncreaseConsumption = (data, yearsToGrow, rate = 0) => {
-    // console.log(rate);
     const startingAmount = data[data.length - 1];
     if (data.length < 2) {
         return data;
     }
-    // const lastRate = (data[data.length - 1] - data[data.length - 2])/data[data.length - 2];
     const predictionArray = steadyIncreaseConsumption(startingAmount, rate, yearsToGrow);
     return data.concat(predictionArray);
 };
@@ -183,7 +177,6 @@ const expandDataWithSteadyIncreaseConsumption = (data, yearsToGrow, rate = 0) =>
 const convert_barrels_oil_to_quad_btu = (barrels) => {
     // The units of barrels are in billions, the return value is in quadrillions
     // A million billion is a quadrillion.
-    console.log("QBTU Oil", barrels * 5.7);
     return (barrels * 5.8);
 };
 
@@ -221,24 +214,21 @@ const generateFlatConsumtionChart = (renewables_rate_change) => {
     const lastOilRate = oil[oil.length - 1];
     let flatConsumptionOil = oil.concat(getFlatConsumptionArray(btuRemainingOil, lastOilRate));
     let longestLen = flatConsumptionOil.length;
-    console.log("len", longestLen);
+
     // coal
     const btuRemainingCoal = convert_coal_to_btu(non_renewable_reserves.coal.proven);
     const lastCoalRate = coal[coal.length - 1];
     let flatConsumptionCoal = coal.concat(getFlatConsumptionArray(btuRemainingCoal, lastCoalRate));
     longestLen = Math.max(longestLen, flatConsumptionCoal.length);
-    console.log("len", longestLen);
     // gas
     const btuRemainingNaturalGas = convert_natural_gas_to_btu(non_renewable_reserves.natural_gas.proven);
     const lastNaturalGasRate = natural_gas[natural_gas.length - 1];
     let flatConsumptionGas = natural_gas.concat(getFlatConsumptionArray(btuRemainingNaturalGas, lastNaturalGasRate));
     longestLen = Math.max(longestLen, flatConsumptionGas.length);
-    console.log("len", longestLen);
 
     // Additional chart space
     const extraYears = 10;
     longestLen = longestLen + extraYears;
-    console.log("len", longestLen);
 
     // zero fill
     flatConsumptionOil = zeroFillArrayBack(flatConsumptionOil, longestLen);
@@ -249,6 +239,18 @@ const generateFlatConsumtionChart = (renewables_rate_change) => {
     // get years
     const fullYearsArray = yearsPlusMoreYears(years, longestLen - years.length - 10);
 
+
+    // Calculate Demand
+    
+    const demand = expandDataWithSteadyIncreaseConsumption(
+        getData(1980, 2016, globalPrimaryConsumption),
+        years.length - 10,
+        demand_rate_input.value * 0.01
+    );
+
+    const n = Math.max(renewables[renewables.length -1], demand[demand.length - 1]);
+    const max_ticks = Math.ceil((n)/100)*100;
+    
     // chart
     const data = {};
     data.labels = fullYearsArray;
@@ -277,11 +279,32 @@ const generateFlatConsumtionChart = (renewables_rate_change) => {
             borderColor: 'rgb(0, 161, 5)',
             data: renewables
         },
+        {
+            label: "Demand",
+            yAxisID: 'demand_line',
+            backgroundColor: 'rgba(255, 120, 250, 0.2)',
+            borderColor: 'rgb(255, 120, 250)',
+            data: demand
+        }
     ];
     const options = {
         scales: {
             yAxes: [{
-                stacked: true
+                stacked: true,
+                ticks: {
+                    beginAtZero: true,
+                    min: 0,
+                    max: max_ticks
+                },
+            },{
+                id: 'demand_line',
+                stacked: false,
+                display: false, // ticks on y axis
+                ticks: {
+                    beginAtZero: true,
+                    min: 0,
+                    max: max_ticks
+                },
             }]
         }
     };
@@ -292,7 +315,10 @@ const generateFlatConsumtionChart = (renewables_rate_change) => {
 generateFlatConsumtionChart(renewables_rate_input.value * 0.01);
 
 renewables_rate_input.onchange = () => {
-    console.log(renewables_rate_input.value);
+    generateFlatConsumtionChart(renewables_rate_input.value * 0.01);
+};
+
+demand_rate_input.onchange = () => {
     generateFlatConsumtionChart(renewables_rate_input.value * 0.01);
 };
 
@@ -392,214 +418,214 @@ pop_carrying_cap_input.onchange = recalculate_pop_predictions;
 //
 
 
-// Generate Chart
-const generateChart2 = () => {
-    var ctx = document.getElementById('historicalChart').getContext('2d');
-    var chart = new Chart(ctx, {
-        // The type of chart we want to create
-        type: 'line',
+// // Generate Chart
+// const generateChart2 = () => {
+//     var ctx = document.getElementById('historicalChart').getContext('2d');
+//     var chart = new Chart(ctx, {
+//         // The type of chart we want to create
+//         type: 'line',
 
-        // The data for our dataset
-        data: {
-            labels: energy_data.years,
-            datasets: [
-                {
-                label: 'Total Primary Energy Consumption',
-                backgroundColor: 'rgba(255, 99, 132, 0.5)',
-                borderColor: 'rgb(255, 99, 132)',
-                data: energy_data.total_primary_energy_consumption,
-                },
-                { label: 'Total Renewable Energy Consumption',
-                backgroundColor: 'rgba(99, 255, 132, 0.5)',
-                borderColor: 'rgb(99, 255, 132)',
-                data: energy_data.total_renewables_consumption,
-                },
-            ]
-        },
-        // Configuration options go here
-        options: {}
-    });	
-};
+//         // The data for our dataset
+//         data: {
+//             labels: energy_data.years,
+//             datasets: [
+//                 {
+//                 label: 'Total Primary Energy Consumption',
+//                 backgroundColor: 'rgba(255, 99, 132, 0.5)',
+//                 borderColor: 'rgb(255, 99, 132)',
+//                 data: energy_data.total_primary_energy_consumption,
+//                 },
+//                 { label: 'Total Renewable Energy Consumption',
+//                 backgroundColor: 'rgba(99, 255, 132, 0.5)',
+//                 borderColor: 'rgb(99, 255, 132)',
+//                 data: energy_data.total_renewables_consumption,
+//                 },
+//             ]
+//         },
+//         // Configuration options go here
+//         options: {}
+//     });	
+// };
 
 
-// Calculating percents of things
+// // Calculating percents of things
 
-// avg total growth yearly
-const calculate_total_energy_growth_percent = (start_year = energy_data.years[0]) => {
-    let idx = energy_data.years.indexOf(start_year);
-    if (idx < 0) {
-        // not found, use starting index
-        idx = 0;
-    }
+// // avg total growth yearly
+// const calculate_total_energy_growth_percent = (start_year = energy_data.years[0]) => {
+//     let idx = energy_data.years.indexOf(start_year);
+//     if (idx < 0) {
+//         // not found, use starting index
+//         idx = 0;
+//     }
 
-    let total_percent_array = [];
-    let last_seen_data_point = 0;
-    energy_data.total_primary_energy_consumption.forEach(function(data_point) {
-        if (last_seen_data_point == 0) {
-            last_seen_data_point = data_point;
-        } else {
-            const this_percent = (data_point/last_seen_data_point ) - 1;
-            total_percent_array.push(this_percent);
-            last_seen_data_point = data_point;
-        }
-    });
+//     let total_percent_array = [];
+//     let last_seen_data_point = 0;
+//     energy_data.total_primary_energy_consumption.forEach(function(data_point) {
+//         if (last_seen_data_point == 0) {
+//             last_seen_data_point = data_point;
+//         } else {
+//             const this_percent = (data_point/last_seen_data_point ) - 1;
+//             total_percent_array.push(this_percent);
+//             last_seen_data_point = data_point;
+//         }
+//     });
 
-    let total_percent = 0;
-    total_percent_array.forEach(function(percent_point) {
-        total_percent += percent_point;
-    });
-    return (total_percent/(total_percent_array.length)) * 100;
+//     let total_percent = 0;
+//     total_percent_array.forEach(function(percent_point) {
+//         total_percent += percent_point;
+//     });
+//     return (total_percent/(total_percent_array.length)) * 100;
       
-};
-// const avg_total_growth_percent = calculate_total_energy_growth_percent();
-// console.log('Total Energy Growth Avg Percent: ', avg_total_growth_percent, '%');
+// };
+// // const avg_total_growth_percent = calculate_total_energy_growth_percent();
+// // console.log('Total Energy Growth Avg Percent: ', avg_total_growth_percent, '%');
 
 
-// const avg_pop_growth_percent = calculate_avg_yearly_pop_growth();
-// console.log('Avg Pop Growth: ', avg_pop_growth_percent, '%');
+// // const avg_pop_growth_percent = calculate_avg_yearly_pop_growth();
+// // console.log('Avg Pop Growth: ', avg_pop_growth_percent, '%');
 
-// console.log('And in 2017-2018: (1.10% according to web) ', calculate_avg_yearly_pop_growth("2017"));
+// // console.log('And in 2017-2018: (1.10% according to web) ', calculate_avg_yearly_pop_growth("2017"));
 
-// avg renewable growth yearly
-const calculate_avg_renewables_growth_yearly = (start_year = energy_data.years[0]) => {
-    let idx = energy_data.years.indexOf(start_year);
-    if (idx < 0) {
-        // not found, use starting index
-        idx = 0;
-    }
+// // avg renewable growth yearly
+// const calculate_avg_renewables_growth_yearly = (start_year = energy_data.years[0]) => {
+//     let idx = energy_data.years.indexOf(start_year);
+//     if (idx < 0) {
+//         // not found, use starting index
+//         idx = 0;
+//     }
 
-    let total_renewable_percent_array = [];
-    let last_seen_data_point = 0;
-    energy_data.total_renewables_consumption.forEach(function(data_point) {
-        if (last_seen_data_point <= 0) {
-            last_seen_data_point = data_point;
-        } else {
-            const this_percent = (data_point/last_seen_data_point ) - 1;
-            total_renewable_percent_array.push(this_percent);
-            last_seen_data_point = data_point;
-        }
-    });
-    let total_percent = 0;
-    total_renewable_percent_array.forEach(function(percent_point) {
-        total_percent += percent_point;
-    });
-    return (total_percent/(total_renewable_percent_array.length)) * 100;
-};
+//     let total_renewable_percent_array = [];
+//     let last_seen_data_point = 0;
+//     energy_data.total_renewables_consumption.forEach(function(data_point) {
+//         if (last_seen_data_point <= 0) {
+//             last_seen_data_point = data_point;
+//         } else {
+//             const this_percent = (data_point/last_seen_data_point ) - 1;
+//             total_renewable_percent_array.push(this_percent);
+//             last_seen_data_point = data_point;
+//         }
+//     });
+//     let total_percent = 0;
+//     total_renewable_percent_array.forEach(function(percent_point) {
+//         total_percent += percent_point;
+//     });
+//     return (total_percent/(total_renewable_percent_array.length)) * 100;
+// };
 
-// const avg_renewable_growth_percent = calculate_avg_renewables_growth_yearly();
-// console.log('Total Renwable Energy Growth Avg Percent: ',
-        // avg_renewable_growth_percent, '%');
+// // const avg_renewable_growth_percent = calculate_avg_renewables_growth_yearly();
+// // console.log('Total Renwable Energy Growth Avg Percent: ',
+//         // avg_renewable_growth_percent, '%');
 
-// avg energy per person 2018
-const calculate_avg_energy_consumpter_per_person =
-        (start_year = population_data.years[population_data.years.length -1 ]) => {
-    const pop_idx = population_data.years.indexOf(start_year);
-    if (pop_idx < 0) {
-        // If we don't have this data, return something negative
-        return -1;
-    }
-    const energy_idx = energy_data.years.indexOf(start_year);
+// // avg energy per person 2018
+// const calculate_avg_energy_consumpter_per_person =
+//         (start_year = population_data.years[population_data.years.length -1 ]) => {
+//     const pop_idx = population_data.years.indexOf(start_year);
+//     if (pop_idx < 0) {
+//         // If we don't have this data, return something negative
+//         return -1;
+//     }
+//     const energy_idx = energy_data.years.indexOf(start_year);
 
-    const total_energy_2018 = energy_data.total_primary_energy_consumption[
-            energy_idx];
-    const total_pop_2018 = population_data.world_population_total[
-            pop_idx];
-    return total_energy_2018/total_pop_2018;
-};
+//     const total_energy_2018 = energy_data.total_primary_energy_consumption[
+//             energy_idx];
+//     const total_pop_2018 = population_data.world_population_total[
+//             pop_idx];
+//     return total_energy_2018/total_pop_2018;
+// };
 
-// const avg_energy_per_person_2018 = calculate_avg_energy_consumpter_per_person() * 1000000000;
-// console.log("Energy per person 2018: ", avg_energy_per_person_2018, "Million BTUs");
+// // const avg_energy_per_person_2018 = calculate_avg_energy_consumpter_per_person() * 1000000000;
+// // console.log("Energy per person 2018: ", avg_energy_per_person_2018, "Million BTUs");
 
-// avg growth energy per person yearly
-const calculate_energy_per_person_growth = 
-    (start_year = population_data.years[0]) => {
-    let pop_idx = population_data.years.indexOf(start_year);
-    if (pop_idx < 0) {
-        pop_idx = 0;
-    }
-    if (pop_idx == population_data.years.length - 1){
-        // Cant measure growth of the last year
-        return 0;
-    }
-    const yearly_energy_per_person_growth = [];
+// // avg growth energy per person yearly
+// const calculate_energy_per_person_growth = 
+//     (start_year = population_data.years[0]) => {
+//     let pop_idx = population_data.years.indexOf(start_year);
+//     if (pop_idx < 0) {
+//         pop_idx = 0;
+//     }
+//     if (pop_idx == population_data.years.length - 1){
+//         // Cant measure growth of the last year
+//         return 0;
+//     }
+//     const yearly_energy_per_person_growth = [];
 
-    let last_seen = calculate_avg_energy_consumpter_per_person(population_data.years[pop_idx]);
-    pop_idx += 1;
-    while (pop_idx < population_data.years.length) {
-        const new_data = calculate_avg_energy_consumpter_per_person(population_data.years[pop_idx]);
-        const accurate_percent = (((new_data/last_seen) - 1) * 100);
+//     let last_seen = calculate_avg_energy_consumpter_per_person(population_data.years[pop_idx]);
+//     pop_idx += 1;
+//     while (pop_idx < population_data.years.length) {
+//         const new_data = calculate_avg_energy_consumpter_per_person(population_data.years[pop_idx]);
+//         const accurate_percent = (((new_data/last_seen) - 1) * 100);
 
-        yearly_energy_per_person_growth.push(Math.round(accurate_percent * 100)/100);
-        pop_idx += 1;
-    }
-    // tally up
-    let total = 0;
-    yearly_energy_per_person_growth.forEach(function(each) {
-        total += each;
-    });
-    const return_val = Math.round((total/yearly_energy_per_person_growth.length) * 100)/100;
-    return return_val;
-};
+//         yearly_energy_per_person_growth.push(Math.round(accurate_percent * 100)/100);
+//         pop_idx += 1;
+//     }
+//     // tally up
+//     let total = 0;
+//     yearly_energy_per_person_growth.forEach(function(each) {
+//         total += each;
+//     });
+//     const return_val = Math.round((total/yearly_energy_per_person_growth.length) * 100)/100;
+//     return return_val;
+// };
 
-// const avg_energy_in_2018 = calculate_energy_per_person_growth("2017");
-// console.log("avg yearly energy consumption growth since 2017: ", avg_energy_in_2018);
+// // const avg_energy_in_2018 = calculate_energy_per_person_growth("2017");
+// // console.log("avg yearly energy consumption growth since 2017: ", avg_energy_in_2018);
 
-// const avg_since_1960 = calculate_energy_per_person_growth("1960");
-// console.log("avg yearly energy consumption growth since 1960: ", avg_since_1960);
-
-
-// const remaining_oil_btus = convert_barrels_oil_to_quad_btu(non_renewable_reserves.oil.proven);
-
-// console.log("There are ", remaining_oil_btus, 'Quadrillion BTUs remaining oil'); 
-
-// console.log("There are ", convert_natural_gas_to_btu(non_renewable_reserves.natural_gas.proven), "Quadrillion BTUs remaining gas");
-
-// In 2018, the annual average heat content of coal produced in the United States was about 
-// 20.15 million British thermal units (Btu) per short ton (2,000 pounds)
-// Data ub million short tons
+// // const avg_since_1960 = calculate_energy_per_person_growth("1960");
+// // console.log("avg yearly energy consumption growth since 1960: ", avg_since_1960);
 
 
+// // const remaining_oil_btus = convert_barrels_oil_to_quad_btu(non_renewable_reserves.oil.proven);
 
-// console.log("There are ", convert_coal_to_btu(non_renewable_reserves.coal.proven), " quadrillion BTUS remain coal");
+// // console.log("There are ", remaining_oil_btus, 'Quadrillion BTUs remaining oil'); 
 
-const get_remaining_btus = () => {
-    return convert_coal_to_btu(non_renewable_reserves.coal.proven) +
-        convert_natural_gas_to_btu(non_renewable_reserves.natural_gas.proven) +
-        convert_barrels_oil_to_quad_btu(non_renewable_reserves.oil.proven);
-};
+// // console.log("There are ", convert_natural_gas_to_btu(non_renewable_reserves.natural_gas.proven), "Quadrillion BTUs remaining gas");
 
-const remaining_total = get_remaining_btus();
-const last_year_total = energy_data.total_primary_energy_consumption[ energy_data.total_primary_energy_consumption.length -1];
-// console.log("last year spent ", last_year_total);
-// console.log("Total: ", remaining_total, " Quadrillion BTUs remain");
-// console.log("Thats ", remaining_total/last_year_total, " years left");
+// // In 2018, the annual average heat content of coal produced in the United States was about 
+// // 20.15 million British thermal units (Btu) per short ton (2,000 pounds)
+// // Data ub million short tons
 
-const chart_discoveries = () => {
-    var ctx = document.getElementById('myChart').getContext('2d');
-    var chart = new Chart(ctx, {
-        // The type of chart we want to create
-        type: 'line',
 
-        // The data for our dataset
-        data: {
-            labels: discoveries_data.years,
-            datasets: [
-                { label: 'Oil New Discoveries',
-                backgroundColor: 'rgb(99, 255, 132)',
-                borderColor: 'rgb(99, 255, 132)',
-                data: discoveries_data.oil_new_discoveries,
-                },
-                {
-                label: 'Natural Gas Discoveries',
-                backgroundColor: 'rgb(255, 99, 132)',
-                borderColor: 'rgb(255, 99, 132)',
-                data: discoveries_data.natural_gas_discoveries,
-            }
-            ]
-        },
-        // Configuration options go here
-        options: {}
-    });	
-};
 
-// chart_discoveries();
+// // console.log("There are ", convert_coal_to_btu(non_renewable_reserves.coal.proven), " quadrillion BTUS remain coal");
+
+// const get_remaining_btus = () => {
+//     return convert_coal_to_btu(non_renewable_reserves.coal.proven) +
+//         convert_natural_gas_to_btu(non_renewable_reserves.natural_gas.proven) +
+//         convert_barrels_oil_to_quad_btu(non_renewable_reserves.oil.proven);
+// };
+
+// const remaining_total = get_remaining_btus();
+// const last_year_total = energy_data.total_primary_energy_consumption[ energy_data.total_primary_energy_consumption.length -1];
+// // console.log("last year spent ", last_year_total);
+// // console.log("Total: ", remaining_total, " Quadrillion BTUs remain");
+// // console.log("Thats ", remaining_total/last_year_total, " years left");
+
+// const chart_discoveries = () => {
+//     var ctx = document.getElementById('myChart').getContext('2d');
+//     var chart = new Chart(ctx, {
+//         // The type of chart we want to create
+//         type: 'line',
+
+//         // The data for our dataset
+//         data: {
+//             labels: discoveries_data.years,
+//             datasets: [
+//                 { label: 'Oil New Discoveries',
+//                 backgroundColor: 'rgb(99, 255, 132)',
+//                 borderColor: 'rgb(99, 255, 132)',
+//                 data: discoveries_data.oil_new_discoveries,
+//                 },
+//                 {
+//                 label: 'Natural Gas Discoveries',
+//                 backgroundColor: 'rgb(255, 99, 132)',
+//                 borderColor: 'rgb(255, 99, 132)',
+//                 data: discoveries_data.natural_gas_discoveries,
+//             }
+//             ]
+//         },
+//         // Configuration options go here
+//         options: {}
+//     });	
+// };
+
+// // chart_discoveries();
