@@ -29,10 +29,8 @@
 		<div>
 			<label for="renewables_rate">Rate of growth for renewables and nuclear</label>
 			<input id="renewables_rate" type="number" value="2" max="5" min="0" step=".1">%
-			<p>2% is what is generally expected.</p>
-			<p>Placeholder for GND?</p>
-			<label for="demand_rate">Rate of growth for demand</label>
-			<input id="demand_rate" type="number" value="2" max="5" min="0" step=".1">%
+			<p>2% is what is generally expected <sup>[citation needed]</sup>.</p>
+			<p>Not exactly likely scenario though is it?</p>
 		</div>
 		<hr>
 	</div>
@@ -40,9 +38,22 @@
 	<!--  Here's what it might look like with prediction -->
 	<div>
 		<p>Making a few assumptions about the future, I can think about what the new few hundred years might look like</p>
-		<p>One line is the demand, the other colors represent....</p>
+		<p>The growth of renewables and nuclear energy remains the same,
+			while the growth of non-renewables declines.
+		</p>
+		<p>Here is where we start to see a real problem: The demand line, in pink.
+			The further it gets from the total supply, likely the more it energy of any
+			type will cost.
+		</p>
+
 		<div style="width:800px">
 			<canvas class="chart" id="myPredictionChart"></canvas>
+		</div>
+		<div>
+			<label for="demand_rate">Rate of growth for demand</label>
+			<input id="demand_rate" type="number" value="2" max="5" min="0" step=".1">%
+			<label for="renewables_rate_2">Rate of growth for renewables and nuclear</label>
+			<input id="renewables_rate_2" type="number" value="2" max="5" min="0" step=".1">%
 		</div>
 		<hr>
 	</div>
@@ -68,12 +79,23 @@
 		    <label for="max_pop">Population Carrying Capacity (Billions)</label>
 		    <input id="max_pop" type="number" value="10">
 		</div>
+		<p>The population stabalizes around year <span id="stable_pop">...</span></p>
 		<hr>
 	</div>
 
 	<!-- Peak demand per person -->
 	<div>
-		
+		<p>Once we reach the Earth's carrying capacity and our population stabalizes
+			our per capita energy may continue to grow, until perhaps that balances
+			out as well.
+		</p>
+		<div style="width:800px">
+			<canvas class="chart" id="PeakDemandChart"></canvas>
+		</div>
+		<p>Right now the average person uses around 13 Million BTUs per year</p>
+		<p>The average American, in contrast, uses like 21 times that per year<sup>[citation needed]</sup>	</p>
+		<label for="per_cap_demand">Per Capita Energy Consumption</label>
+		<input id="per_cap_demand" type="number" value="12">
 	</div>
 
 	<!-- Myth of infinite energy growth on Earth -->
