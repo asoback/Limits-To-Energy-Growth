@@ -1,6 +1,11 @@
 import { energy_data, population_data, non_renewable_reserves, discoveries_data } from './data.js';
 import { globalPrimaryConsumption, globalOilConsumption, globalCoalConsumption, globalNaturalGasConsumption, globalNuclearAndRenewableConsumption} from './GlobalConsumption.js';
 
+const QUAD = 1000000000000000;
+const TRILLION = 1000000000000;
+const BILLION = 1000000000;
+const MILLION = 1000000;
+
 // Utilities
 const get_years_array = (size, start_year) => {
     let years = [];
@@ -20,6 +25,7 @@ const historicalChart = document.getElementById('historicalChart');
 const flatConsumptionChart = document.getElementById('flatConsumptionChart');
 const myPredictionChart = document.getElementById('myPredictionChart');
 const PopulationChart = document.getElementById('PopulationChart');
+const peakDemandChart = document.getElementById('PeakDemandChart');
 const pop_num_years_input = document.getElementById("num_years");
 const pop_carrying_cap_input = document.getElementById("max_pop");
 const renewables_rate_input = document.getElementById("renewables_rate");
@@ -295,9 +301,6 @@ const generateFlatConsumtionChart = (renewables_rate_change) => {
         }
     };
     generateChart(flatConsumptionChart, data, 'line', options);
-    console.log('fossil', flatConsumptionCoal[0] +  flatConsumptionGas[0] +flatConsumptionOil[0]);
-    console.log('Q renew', renewables[0]);
-    console.log('total', + renewables[0]);
 };
 
 generateFlatConsumtionChart(renewables_rate_input.value * 0.01);
@@ -432,16 +435,22 @@ const generateMyPredictionChart = (renewables_rate_change) => {
         }
     };
     generateChart(myPredictionChart, data, 'line', options);
+
+    const totalSupply = [];
+    for (let i = 0; i < fullYearsArray.length; i++) {
+        totalSupply.push(Math.round(decliningConsumptionCoal[i] + decliningConsumptionGas[i] + decliningConsumptionOil[i] + renewables[i]));
+    }
+    return totalSupply;
 };
 
-generateMyPredictionChart(renewables_rate_input_2.value * 0.01);
+let totalSupply = generateMyPredictionChart(renewables_rate_input_2.value * 0.01);
 
 demand_rate_input.onchange = () => {
-    generateMyPredictionChart(renewables_rate_input_2.value * 0.01);
+    totalSupply = generateMyPredictionChart(renewables_rate_input_2.value * 0.01);
 };
 
 renewables_rate_input_2.onchange = () => {
-    generateMyPredictionChart(renewables_rate_input_2.value * 0.01);
+    totalSupply = generateMyPredictionChart(renewables_rate_input_2.value * 0.01);
 };
 
 
@@ -454,6 +463,7 @@ const modeling_population_growth = (num_years, starting_pop, carrying_cap, rate)
     let pops = [];
     // const e = 2.71828;
     let last_pop = starting_pop;
+    console.log("starting ", starting_pop);
     let cap_reached = false;
     for (let i = 0; i < num_years; i+= 1) {
         const pop_growth = last_pop*rate*(1-((last_pop-starting_pop)/(carrying_cap - starting_pop)));
@@ -549,17 +559,22 @@ const calculate_avg_energy_consumpter_per_person =
         // If we don't have this data, return something negative
         return -1;
     }
-    const energy_idx = energy_data.years.indexOf(start_year);
-
-    const total_energy_2018 = energy_data.total_primary_energy_consumption[
-            energy_idx];
+    const energy_idx = globalPrimaryConsumption.years.indexOf(Number(start_year));
+    if (energy_idx < 0) {
+        // If we don't have this data, return something negative
+        return -1;
+    }
+    const total_energy_2018 = globalPrimaryConsumption.data[energy_idx];
+    const total_renewable_2018 = globalNuclearAndRenewableConsumption.data[energy_idx];
+    const total = (total_energy_2018 + total_renewable_2018) * QUAD;
     const total_pop_2018 = population_data.world_population_total[
             pop_idx];
-    return total_energy_2018/total_pop_2018;
+    const retval = Math.round((total/total_pop_2018) * 10 )/10;
+    return retval;
 };
 
-const avg_energy_per_person_2018 = calculate_avg_energy_consumpter_per_person() * 1000000000;
-console.log("Energy per person 2018: ", avg_energy_per_person_2018, "Million BTUs");
+const avg_energy_per_person_2018 = calculate_avg_energy_consumpter_per_person('2016');
+console.log("Energy per person 2018: ", avg_energy_per_person_2018, " BTUs");
 
 // avg growth energy per person yearly
 const calculate_energy_per_person_growth = 
@@ -592,19 +607,66 @@ const calculate_energy_per_person_growth =
     return return_val;
 };
 
-const avg_energy_in_2018 = calculate_energy_per_person_growth("2017");
+const avg_energy_in_2018 = calculate_energy_per_person_growth();
 console.log("avg yearly energy consumption growth since 2017: ", avg_energy_in_2018);
 
 const avg_since_1960 = calculate_energy_per_person_growth("1960");
 console.log("avg yearly energy consumption growth since 1960: ", avg_since_1960);
 
+function last(array) {
+    return array[array.length - 1];
+}
 
-const generateDemandPerCapitaChart = () => {
+const generateDemandPerCapitaChart = (perCapita, populationMax, totalSupplyArray, maxRate, numYears) => {
+    const peakDemand = perCapita * populationMax;
+    console.log('maximum', peakDemand/QUAD);
+    const mostRecentYear = last(globalPrimaryConsumption.years);
+    const mostRecentDemand = Math.round(last(globalPrimaryConsumption.data) + last(globalNuclearAndRenewableConsumption.data));
+    //Generate yearly rate that caps out at some max
+        // Look at desired demand per person * pop
+    // Reuse the same population fn?
+
+console.log(totalSupplyArray.length - 36, numYears);
+    const futureDemand = modeling_population_growth(totalSupplyArray.length - 36, mostRecentDemand, peakDemand/QUAD, maxRate);
+    let demand = [];
+    for ( let i = 0; i < 36; i++){
+        demand.push(totalSupplyArray[i]);
+    }
+    console.log('last known', last(demand));
+    demand = demand.concat(futureDemand);
+    console.log('next', futureDemand[0]);
+    // Compare to the possible supply per year
+
+    const years = yearsPlusMoreYears(globalPrimaryConsumption.years, numYears); 
+   
+    // Generate chart
+    const data = {};
+    // make years
+    data.labels = get_years_array(numYears, 1980);
+    data.datasets = [
+        {
+            label: 'Supply',
+            borderColor: 'rgb(99, 255, 132)',
+            data: totalSupplyArray
+        },
+        {
+            label: 'Demand',
+            borderColor: 'rgb(255, 99, 132)',
+            data: demand
+        }
+    ];
+    generateChart(peakDemandChart, data);
 
 
 };
 
+//TODO make these inputs
+const maxRate = 0.02;
+const perCapita = 99* MILLION;
+const populationMax =pop_carrying_cap_input.value * 1000000000;
+const numYears = totalSupply.length;
 
+generateDemandPerCapitaChart(perCapita, populationMax, totalSupply, maxRate, numYears);
 
 
 
