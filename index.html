@@ -81,6 +81,27 @@
 		</div>
 		<p>The population stabalizes around year <span id="stable_pop">...</span></p>
 		<hr>
+
+		<div>
+			<p>If there is no forseable limit, I won't even show it on a chart.
+				Just play with this compound interest calculator.
+			</p>
+			<div>
+				<label for="compoundStartPop">Starting Population</label>
+				<input id="compoundStartPop" type="number" value="7800000000">
+				<label for="compoundYear">Starting Year</label>
+				<input id="compoundYear" type="number" value="2020">
+				<label for="compoundYearsToGrow">Years to Grow</label>
+				<input id="compoundYearsToGrow" type="number" value="100">
+				<label for="compoundRate">Rate</label>
+				<input id="compoundRate" type="number" value="0.012">
+				<button id="compountSubmit">Go</button>
+			</div>
+			<div>
+				<p id="compoundOutput"></p>
+			</div>
+			<hr>
+		</div>
 	</div>
 
 	<!-- Peak demand per person -->
@@ -98,19 +119,9 @@
 		<input id="per_cap_demand" type="number" value="13">
 	</div>
 
-	<!-- Myth of infinite energy growth on Earth -->
-	<div>
-		
-	</div>
-
-	<!-- Growth of renewables and nuclear -->
-	<div>
-		
-	</div>
-
 	<!-- How much renewables are undiscovered -->
 	<div>
-		
+		<h3>UnDiscovered </h3>
 	</div>
 
 	<!-- Conclusion -->
