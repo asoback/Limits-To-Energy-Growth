@@ -548,6 +548,69 @@ pop_num_years_input.onchange = recalculate_pop_predictions;
 pop_carrying_cap_input.onchange = recalculate_pop_predictions;
 
 
+// Compount interest
+// Bind Elements
+    const compoundStartPop = document.getElementById("compoundStartPop");
+    const compoundYear = document.getElementById("compoundYear");
+    const compoundYearsToGrow = document.getElementById("compoundYearsToGrow");
+    const compoundRate = document.getElementById("compoundRate");
+    const compountSubmit = document.getElementById("compoundSubmit");
+    const compoundOutput = document.getElementById("compoundOutput");
+    const compoundDescription = document.getElementById("compoundDescription");
+
+const simple_interest_function = (startPop,
+        startYear,
+        yearsToGrow,
+        compoundRate) => {
+        console.log('In the function');
+        console.log(Number(yearsToGrow));
+        const power = Number(yearsToGrow);
+        const fullCompoundRate = 1 + Number(compoundRate);
+        const rateToPower = Math.pow(fullCompoundRate, power);
+        console.log("rate", fullCompoundRate);
+        console.log("power", power);
+        console.log("rate to power",rateToPower);
+        const finalAmount = Number(startPop) * rateToPower;
+        return Math.round(finalAmount);
+    };
+
+const int_to_string = (num) => {
+    if (num > QUAD) {
+        const reduce = Math.round(num/QUAD);
+        return reduce + ' Quadrillion';
+    } else if (num > TRILLION) {
+        const reduce = Math.round(num/TRILLION);
+        return reduce + ' Trillion';
+    } else if (num > BILLION) {
+        const reduce = Math.round(num/BILLION);
+        return reduce + ' Billion';
+    } else {
+        const reduce = Math.round(num/MILLION);
+        return reduce + ' Million';
+    }
+};
+
+const number_with_commas = (num) => {
+    let x = num.toString();
+    const pattern = /(-?\d+)(\d{3})/;
+    while (pattern.test(x))
+        x = x.replace(pattern, "$1,$2");
+    return x;
+};
+
+compoundSubmit.onclick = () => {
+    const final_pop = simple_interest_function(
+            compoundStartPop.value,
+            compoundYear.value,
+            compoundYearsToGrow.value,
+            compoundRate.value
+    );
+
+    compoundOutput.textContent = number_with_commas(final_pop);
+    compoundDescription.textContent = 'Or roughly ' + int_to_string(final_pop);
+};
+
+
 //
 // Per Capita Energy Consumption
 //
