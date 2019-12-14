@@ -11,7 +11,7 @@
 	<div>
 		<h1>How Long Do We Have Left</h1>
 		<h6>Convert Now!</h6>
-		<p>Here's how much oil the US Government <sup><a href="">[1]</a></sup></p> says that the whole world has used since like the 50s.
+		<p>Here's how much oil the US Government <sup><a href="">[1]</a></sup></p> says that the whole world has used since the 80s.
 		<div style="width:800px">
 			<canvas class="chart" id="historicalChart"></canvas>
 		</div>
@@ -124,7 +124,27 @@
 	<div>
 		<h3>Undiscovered Resources</h3>
 
-		<p>Here will go stuff about undiscovered resouces</p>
+		<p>The amount of remaining resources so far that we've been discussing
+			are what oil companies are 90% confident we will be able to find and 
+			retrieve. Of course, there may be more that we are able to dig up under
+			the oceans, and climate change melting the polar regions of the planet 
+			will pave the way for even more fossil fuel discoveries. 
+		</p>
+		<p> It's also worth considering that we won't use every last drop 
+			as the climate crisis develops and as our civilization decides to
+			transition to a sustainable future.
+		</p>
+		<div style="width:800px">
+			<canvas class="chart" id="undiscoveredChart"></canvas>
+		</div>
+		<label for="undiscovered">Extra undiscovered Resouces</label>
+		<input id="undiscovered" type="number" value="25" step="5">%
+		<label for="yearsUntilTurnAround">Years until turn around</label>
+		<input id="yearsUntilTurnAround" type="number" min="0" value="20">
+		<p>For this input, consider the number of years from today, where 
+			society fully commits to divesting in fossil fuels, and each 
+			year we consume less fossil fuels than the previous year.
+		</p>
 		<hr>
 	</div>
 
