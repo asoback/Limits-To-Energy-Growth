@@ -6,6 +6,93 @@ const TRILLION = 1000000000000;
 const BILLION = 1000000000;
 const MILLION = 1000000;
 
+const modelVariables = {
+    startYear : 1980,
+    historicalYears: 36,
+    endYear: 2170,
+    maxChartHeight: 1000,
+    pop: {
+        carryingCapacityBil: 10,
+        peakPopulationBil: 10,
+        history: [],
+        lastRate: 0
+    },
+    energyPerPerson: {
+        peakIndex: 0,
+        carryingCapacityBil: 0,
+        history: [],
+        rateOfIncrease: 0
+    },
+    renewables: {
+        floorIndex: 0,
+        peakIndex: 0,
+        yearsRemaining: 0,
+        history: [],
+        rateOfIncrease: 0
+    },
+    coal: {
+        floorIndex: 0,
+        peakIndex: 0,
+        yearsRemaining: 0,
+        history: [],
+        rateOfIncrease: 0
+    },
+    oil: {
+        floorIndex: 0,
+        peakIndex: 0,
+        yearsRemaining: 0,
+        history: [],
+        rateOfIncrease: 0
+    },
+    gas: {
+        floorIndex: 0,
+        peakIndex: 0,
+        yearsRemaining: 0,
+        history: [],
+        rateOfIncrease: 0
+    },
+    demand: {
+        floorIndex: 0,
+        peakIndex: 0,
+        yearsRemaining: 0,
+        history: [],
+        rateOfIncrease: 0
+    }
+    
+};
+
+
+
+const populateModelData = () => {
+
+    // Get total btu from startyear
+    indexTotal = 0;
+    let coalIdx = 0;
+    while (globalCoalConsumption.data[coalIdx] < modelVariables.startYear){++coalIdx;}
+    indexTotal += globalCoalConsumption.data[coalIdx];
+    let oilIdx = 0;
+    while (globalOilConsumption.data[oilIdx] < modelVariables.startYear){++oilIdx;}
+    indexTotal += globalOilConsumption.data[oilIdx];
+    let gasIdx = 0;
+    while (globalNaturalGasConsumption.data[gasIdx] < modelVariables.startYear){++gasIdx;}
+    indexTotal += globalNaturalGasConsumption.data[gasIdx];
+    let renewIdx = 0;
+    while (globalNuclearAndRenewableConsumption.data[renewIdx] < modelVariables.startYear){++renewIdx;}
+    indexTotal += globalNuclearAndRenewableConsumption.data[renewIdx];
+
+    totalHistory = [100];
+    for (let i = 0; i > modelVariables.historicalYears; i++){
+    renewables.history.append();
+    oil.history.append();
+    coal.history.append();
+    gas.history.append();
+
+    demand.history.append();
+    }
+
+};
+
+
 // Utilities
 const get_years_array = (size, start_year) => {
     let years = [];
@@ -21,6 +108,110 @@ const array_of_years_start_to_end = (start, end) => {
     return get_years_array(size, start);
 };
 
+const generateChart = (chartDiv, data, type = 'line', options = {}) => {
+    let ctx = chartDiv.getContext('2d');
+    let chart = new Chart(ctx, {
+        type: type,
+        data: data,
+        options: options
+    });	
+};
+
+const getEnergyData = (startYear, endYear, data) => {
+    let i = 0;
+    const calculatedData = [];
+    while (i < data.history.length()) {
+        calculatedData.append(data.history[i]);
+        ++i;
+    }
+    let currentYear = startYear + i;
+
+    let lastValue = data.history[i - 1];
+    amountRemaning = lastValue * data.yearsRemaining;
+    while (currentYear <= endYear) {
+        if (lastValue >= data.peakIndex * 0.95){
+            // fall
+            const lessValue = lastValue * data.rateOfIncrease * (1 - ((data.peakIndex - lastValue) / (data.peakIndex - data.floorIndex)));
+            lastValue = lastValue + lessValue;
+        } else {
+            // rise or stay flat
+            const growthValue = lastValue * data.rateOfIncrease * (1 - ((lastValue - data.history[0]) / (data.peakIndex - data.history[0])));
+            lastValue = lastValue + growthValue;
+        }
+        calculatedData.append(Math.min(lastValue, amountRemaining));
+        amountRemaining = amountRemaining - lastValue;
+        ++currentYear;
+    }
+    return calculatedData;
+};
+
+const buildEnergyChart = (chartElem, oilBool, coalBool, gasBool, renewBool, demandBool) => {
+    const type = 'line';
+    const data = {};
+    data.labels = array_of_years_start_to_end(modelVariables.startYear, modelVariables.endYear);
+    data.datasets = [];
+
+    if (oilBool){
+         data.datasets.append({
+            label: 'Total Oil Consumption',
+            backgroundColor: 'rgba(64, 37, 29, 0.5)',
+            borderColor: 'rgb(64, 37, 29)',
+            data: getEnergyData(modelVariables.startYear, modelVariables.endYear,  modelVariables.oil),
+        });
+    }
+
+    if (coalBool){
+        data.datasets.append({
+            label: 'Total Coal Consumption',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            borderColor: 'rgb(0, 0, 0)',
+            data: getEnergyData(modelVariables.startYear, modelVariables.endYear, modelVariables.coal),
+        });
+    }
+
+    if (gasBool){
+         data.datasets.append({
+            label: 'Total Gas Consumption',
+            backgroundColor: 'rgba(196, 170, 0, 0.5)',
+            borderColor: 'rgb(196, 170, 0)',
+            data: getEnergyData(modelVariables.startYear, modelVariables.endYear,  modelVariables.oil),
+        });
+    }
+
+    if (renewBool){
+        data.datasets.append({
+            label: 'Total Nuclear and Renewable Energy Consumption',
+            backgroundColor: 'rgba(0, 181, 30, 0.5)',
+            borderColor: 'rgb(0, 181, 30)',
+            data: getEnergyData(modelVariables.startYear, modelVariables.endYear, modelVariables.coal),
+        });
+    }
+
+    if (demandBool){
+        data.datasets.append({
+            label: "Demand",
+            yAxisID: 'demand_line',
+            backgroundColor: 'rgba(255, 120, 250, 0.2)',
+            borderColor: 'rgb(255, 120, 250)',
+            data: getEnergyData(modelVariables.startYear, modelVariables.endYear, modelVariables.coal),
+        });
+    }
+
+    const options = {
+        scales: {
+            yAxes: [{
+                stacked: true
+            }]
+        }
+    };
+
+    generateChart(chartElem, data, type, options);
+};
+
+
+
+
+
 const historicalChart = document.getElementById('historicalChart');
 const flatConsumptionChart = document.getElementById('flatConsumptionChart');
 const myPredictionChart = document.getElementById('myPredictionChart');
@@ -33,14 +224,7 @@ const renewables_rate_input_2 = document.getElementById("renewables_rate_2");
 const demand_rate_input =  document.getElementById("demand_rate");
 
 
-const generateChart = (chartDiv, data, type = 'line', options = {}) => {
-    let ctx = chartDiv.getContext('2d');
-    let chart = new Chart(ctx, {
-        type: type,
-        data: data,
-        options: options
-    });	
-};
+
 
 const convertMillionBarrelsDayToQBTU = (data) => {
     const a = [];
