@@ -61,34 +61,88 @@ const modelVariables = {
     
 };
 
+const convertMillionBarrelsDayToQBTU = (data) => {
+    const a = [];
+    for (let i = 0; i < data.length; i++) {
+        // 1 million barrel oil = .00555136 quad btu
+        a.push(Math.round(data[i] * 365 * 0.00000555));
+    }
+    return a;
+};
 
+const convertMillionShortTonsToQBTU = (data) => {
+    const a = [];
+    for (let i = 0; i < data.length; i++) {
+        //TODO check if ton is same as short ton.
+        // 1 million ton coal = .02778 quad btu
+        a.push(Math.round(data[i] * 0.00002778));
+    }
+    return a;
+};
 
+const convertBcfToQBTU = (data) => {
+    const a = [];
+    for (let i = 0; i < data.length; i++) {
+        // Billion cubicfeet gas = .001027 quad btu
+        a.push(Math.round(data[i] * 0.001027));
+    }
+    return a;
+};
+
+/**
+    populate the model energy data.
+ */
 const populateModelData = () => {
-
     // Get total btu from startyear
     indexTotal = 0;
-    let coalIdx = 0;
-    while (globalCoalConsumption.data[coalIdx] < modelVariables.startYear){++coalIdx;}
-    indexTotal += globalCoalConsumption.data[coalIdx];
+    
     let oilIdx = 0;
-    while (globalOilConsumption.data[oilIdx] < modelVariables.startYear){++oilIdx;}
-    indexTotal += globalOilConsumption.data[oilIdx];
+    while (globalOilConsumption.years[oilIdx] < modelVariables.startYear){++oilIdx;}
+    startValueOil = convertMillionBarrelsDayToQBTU(globalOilConsumption.data[oilIdx]);
+    indexTotal += startValueOil;
+
+    let coalIdx = 0;
+    while (globalCoalConsumption.years[coalIdx] < modelVariables.startYear){++coalIdx;}
+    startValueCoal = convertMillionShortTonsToQBTU(globalCoalConsumption.data[coalIdx]);
+    indexTotal += startValueCoal;
+
     let gasIdx = 0;
-    while (globalNaturalGasConsumption.data[gasIdx] < modelVariables.startYear){++gasIdx;}
-    indexTotal += globalNaturalGasConsumption.data[gasIdx];
+    while (globalNaturalGasConsumption.years[gasIdx] < modelVariables.startYear){++gasIdx;}
+    startValueGas = convertBcfToQBTU(globalNaturalGasConsumption.data[gasIdx]);
+    indexTotal += startValueGas;
+
     let renewIdx = 0;
-    while (globalNuclearAndRenewableConsumption.data[renewIdx] < modelVariables.startYear){++renewIdx;}
-    indexTotal += globalNuclearAndRenewableConsumption.data[renewIdx];
+    while (globalNuclearAndRenewableConsumption.years[renewIdx] < modelVariables.startYear){++renewIdx;}
+    startValueRenew = globalNuclearAndRenewableConsumption.data[renewIdx];
+    indexTotal += startValueRenew;
 
-    totalHistory = [100];
-    for (let i = 0; i > modelVariables.historicalYears; i++){
-    renewables.history.append();
-    oil.history.append();
-    coal.history.append();
-    gas.history.append();
+    startPercentOil = startValueOil/indexTotal * 100;
+    startPercentCoal = startValueCoal/indexTotal * 100;
+    startPercentGas = startValueGas/indexTotal * 100;
+    startPercentRenew = startValueRenew/indexTotal * 100;
 
-    demand.history.append();
+    modelVariables.oil.history.append(startPercentOil);
+    modelVariables.coal.history.append(startPercentCoal);
+    modelVariables.gas.history.append(startPercentGas);
+    modelVariables.renewables.history.append(startPercentRenew);
+    modelVariables.demand.history.append(100);
+
+    // Get historical energy use indices
+    for (let i = 1; i > modelVariables.historicalYears; i++){
+        modelVariables.oil.history.append(convertMillionBarrelsDayToQBTU((globalOilConsumption.data[oilIdx + i] / startValueOil)* startPercentOil));
+        modelVariables.coal.history.append(convertMillionShortTonsToQBTU((globalCoalConsumption.data[coalIdx + i] / startValueCoal)* startPercentCoal));
+        modelVariables.gas.history.append(convertBcfToQBTU((globalNaturalGasConsumption.data[gasIdx + i] / startValueGas)* startPercentGas));
+        modelVariables.renewables.history.append((globalNuclearAndRenewableConsumption.data[renewIdx + i] / startValueRenew)* startPercentRenew);
+
+        const demand = ( modelVariables.oil.history[i] +
+        modelVariables.coal.history[i] +
+        modelVariables.gas.history[i] +
+        modelVariables.renewables.history[i] );
+        modelVariables.demand.history.append(demand);
     }
+
+    // TODO
+    // Future predictions index
 
 };
 
@@ -223,36 +277,6 @@ const renewables_rate_input = document.getElementById("renewables_rate");
 const renewables_rate_input_2 = document.getElementById("renewables_rate_2");
 const demand_rate_input =  document.getElementById("demand_rate");
 
-
-
-
-const convertMillionBarrelsDayToQBTU = (data) => {
-    const a = [];
-    for (let i = 0; i < data.length; i++) {
-        // 1 million barrel oil = .00555136 quad btu
-        a.push(Math.round(data[i] * 365 * 0.00000555));
-    }
-    return a;
-};
-
-const convertMillionShortTonsToQBTU = (data) => {
-    const a = [];
-    for (let i = 0; i < data.length; i++) {
-        //TODO check if ton is same as short ton.
-        // 1 million ton coal = .02778 quad btu
-        a.push(Math.round(data[i] * 0.00002778));
-    }
-    return a;
-};
-
-const convertBcfToQBTU = (data) => {
-    const a = [];
-    for (let i = 0; i < data.length; i++) {
-        // Billion cubicfeet gas = .001027 quad btu
-        a.push(Math.round(data[i] * 0.001027));
-    }
-    return a;
-};
 
 
 const getData = (start_year, end_year, dataset) => {
