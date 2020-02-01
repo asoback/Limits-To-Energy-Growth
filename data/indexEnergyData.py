@@ -83,5 +83,5 @@ for item in start_energy_dict:
 THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 output = os.path.join(THIS_FOLDER, OUTPUTFILE)
 with open(output, 'w') as f:
-    f.write(json.dumps(indexed_energy_dict,  sort_keys=True, indent=4))
+    f.write(json.dumps(indexed_energy_dict, separators=(',', ': '), indent=4))
 
