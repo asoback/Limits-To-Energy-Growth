@@ -1,0 +1,14 @@
+{
+    "oil": {
+        "proven": 1688, 
+        "unit": "Billion Barrels"
+    }, 
+    "natural_gas": {
+        "proven": 6922, 
+        "unit": "Trillion Cubic Feet"
+    }, 
+    "coal": {
+        "proven": 1144238, 
+        "unit": "Million Short Tons"
+    }
+}
