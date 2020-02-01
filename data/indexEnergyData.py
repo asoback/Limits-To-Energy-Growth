@@ -1,15 +1,19 @@
 import json
 import os
 
-STARTVALUE = 100
-INPUTFILE = 'GlobalConsumption.json'
-OUTPUTFILE = 'indexedData.json'
+START_VALUE = 100
+CONSUMPTION_INPUT_FILE = 'GlobalConsumption.json'
+RESERVES_INPUT_FILE = 'reserves.json'
+OUTPUT_FILE = 'indexedData.json'
 
-if os.path.exists(OUTPUTFILE):
-    os.remove(OUTPUTFILE)
+if os.path.exists(OUTPUT_FILE):
+    os.remove(OUTPUT_FILE)
 
-with open(INPUTFILE, 'r') as f:
-    start_energy_dict = json.load(f)
+with open(CONSUMPTION_INPUT_FILE, 'r') as consumption_file:
+    start_energy_dict = json.load(consumption_file)
+
+with open(RESERVES_INPUT_FILE, 'r') as reserves_file:
+    reserves_dict = json.load(reserves_file)
 
 # Check that the start year and end year is the same for all
 for item in start_energy_dict:
@@ -54,11 +58,23 @@ def convertBcfToQBTU(dataDict, index):
 def QBTU2QBTU(dataDict, index):
     return dataDict["data"][index]
 
+def BB2QBTU(dataDict, index):
+    assert(checkDataDictType(dataDict) ==  "Billion Barrels")
+    # 1 million barrel oil = .00555136 quad btu
+    return round(dataDict["data"][index] * 1000 * 0.00000555, 2)
+
+def TCF2QBTU(dataDict, index):
+     assert(checkDataDictType(dataDict) == "Trillion Cubic Feet")
+    # Billion cubicfeet gas = .001027 quad btu
+    return round(dataDict["data"][index] * 1000 * 0.001027, 2)
+
 switchType = {
     "Mb/d": convertMillionBarrelsDayToQBTU,
     "Mst": convertMillionShortTonsToQBTU,
     "bcf": convertBcfToQBTU,
     "quad Btu": QBTU2QBTU,
+    "Billion Barrels":BB2QBTU,
+    "Trillion Cubic Feet":TCF2QBTU
 }
 
 def convertDatatoQBTU(dataDict, index):
@@ -75,13 +91,13 @@ for item in start_energy_dict:
     indexed_energy_dict.append({"type": item["type"], "data": []})
     data_index = 0
     for data_item in item["data"]:
-        indexed_energy_dict[item_index]["data"].append(round(convertDatatoQBTU(item, data_index) / total_demand_year_0 * STARTVALUE, 2))
+        indexed_energy_dict[item_index]["data"].append(round(convertDatatoQBTU(item, data_index) / total_demand_year_0 * START_VALUE, 2))
         data_index = data_index + 1
     item_index = item_index + 1
 
 
 THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
-output = os.path.join(THIS_FOLDER, OUTPUTFILE)
+output = os.path.join(THIS_FOLDER, OUTPUT_FILE)
 with open(output, 'w') as f:
     f.write(json.dumps(indexed_energy_dict, separators=(',', ': '), indent=4))
 
