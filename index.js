@@ -1,4 +1,4 @@
-import { population } from './data/population.js';
+import { population_data } from './data/population.js';
 import { indexed_energy_data } from './data/indexedData.js';
 
 import { utils } from './utils.js';
@@ -28,7 +28,6 @@ const modelVariables = {
     },
     energyPerPerson: {
         peakIndex: 0,
-        carryingCapacityBil: 0,
         history: [],
         rateOfIncrease: 0
     },
@@ -53,7 +52,7 @@ const modelVariables = {
         history: [],
         rateOfIncrease: 0
     },
-    gas: {
+    natural_gas: {
         floorIndex: 0,
         peakIndex: 0,
         yearsRemaining: 0,
@@ -74,58 +73,52 @@ const modelVariables = {
     populate the model energy data.
  */
 const populateModelData = () => {
-    // Get total btu from startyear
-    indexTotal = 0;
-    
-    let oilIdx = 0;
-    while (globalOilConsumption.years[oilIdx] < modelVariables.startYear){++oilIdx;}
-    startValueOil = convertMillionBarrelsDayToQBTU(globalOilConsumption.data[oilIdx]);
-    indexTotal += startValueOil;
-
-    let coalIdx = 0;
-    while (globalCoalConsumption.years[coalIdx] < modelVariables.startYear){++coalIdx;}
-    startValueCoal = convertMillionShortTonsToQBTU(globalCoalConsumption.data[coalIdx]);
-    indexTotal += startValueCoal;
-
-    let gasIdx = 0;
-    while (globalNaturalGasConsumption.years[gasIdx] < modelVariables.startYear){++gasIdx;}
-    startValueGas = convertBcfToQBTU(globalNaturalGasConsumption.data[gasIdx]);
-    indexTotal += startValueGas;
-
-    let renewIdx = 0;
-    while (globalNuclearAndRenewableConsumption.years[renewIdx] < modelVariables.startYear){++renewIdx;}
-    startValueRenew = globalNuclearAndRenewableConsumption.data[renewIdx];
-    indexTotal += startValueRenew;
-
-    startPercentOil = startValueOil/indexTotal * 100;
-    startPercentCoal = startValueCoal/indexTotal * 100;
-    startPercentGas = startValueGas/indexTotal * 100;
-    startPercentRenew = startValueRenew/indexTotal * 100;
-
-    modelVariables.oil.history.append(startPercentOil);
-    modelVariables.coal.history.append(startPercentCoal);
-    modelVariables.gas.history.append(startPercentGas);
-    modelVariables.renewables.history.append(startPercentRenew);
-    modelVariables.demand.history.append(100);
-
-    // Get historical energy use indices
-    for (let i = 1; i > modelVariables.historicalYears; i++){
-        modelVariables.oil.history.append(convertMillionBarrelsDayToQBTU((globalOilConsumption.data[oilIdx + i] / startValueOil)* startPercentOil));
-        modelVariables.coal.history.append(convertMillionShortTonsToQBTU((globalCoalConsumption.data[coalIdx + i] / startValueCoal)* startPercentCoal));
-        modelVariables.gas.history.append(convertBcfToQBTU((globalNaturalGasConsumption.data[gasIdx + i] / startValueGas)* startPercentGas));
-        modelVariables.renewables.history.append((globalNuclearAndRenewableConsumption.data[renewIdx + i] / startValueRenew)* startPercentRenew);
-
-        const demand = ( modelVariables.oil.history[i] +
-        modelVariables.coal.history[i] +
-        modelVariables.gas.history[i] +
-        modelVariables.renewables.history[i] );
-        modelVariables.demand.history.append(demand);
+    // Handle pop data
+    let popIndex = 0;
+    while (population_data.years[popIndex] < modelVariables.startYear ) {
+        ++popIndex;
     }
 
-    // TODO
-    // Future predictions index
+    while (popIndex < population_data.years.length) {
+        modelVariables.pop.history.push(population_data.world_population_total[popIndex]);
+        ++popIndex;
+    }
 
+    modelVariables.pop.lastRate = ( 
+        modelVariables.pop.history[popIndex -1] / 
+        modelVariables.pop.history[popIndex - 2] ) - 1 ;
+
+    // handle energy data
+    indexed_energy_data.forEach((item, index) => {
+        if (item.data) {
+            const energySource = item.type;
+            modelVariables[energySource].history = item.data;
+            modelVariables[energySource].peakIndex = utils.last(modelVariables[energySource].history);
+            modelVariables[energySource].rateOfIncrease = energy_calc.calcAvgGrowth(modelVariables[energySource].history);
+        }
+    });
+
+    // Demand history
+
+    for (let i = 0; i < modelVariables.oil.history.length; i++) {
+        let thisDemand = modelVariables.oil.history[i];
+        thisDemand += modelVariables.coal.history[i];
+        thisDemand += modelVariables.natural_gas.history[i];
+        thisDemand += modelVariables.renewables.history[i];
+        modelVariables.demand.history.push(thisDemand);
+        modelVariables.energyPerPerson.history.push(Math.round((thisDemand * utils.TRILLION())/modelVariables.pop.history[i], 0));
+    }
+
+    modelVariables.demand.peakIndex = utils.last(modelVariables.demand.history);
+    modelVariables.demand.rateOfIncrease = energy_calc.calcAvgGrowth(modelVariables.demand.history);
+
+    modelVariables.energyPerPerson.peakIndex = utils.last(modelVariables.energyPerPerson.history);
+    modelVariables.energyPerPerson.rateOfIncrease = energy_calc.calcAvgGrowth(modelVariables.energyPerPerson.history);
 };
+
+populateModelData();
+
+console.log(modelVariables);
 
 const generateChart = (chartDiv, data, type = 'line', options = {}) => {
     let ctx = chartDiv.getContext('2d');
@@ -144,7 +137,7 @@ const buildEnergyChart = (chartElem, oilBool, coalBool, gasBool, renewBool, dema
     data.datasets = [];
 
     if (oilBool){
-         data.datasets.append({
+         data.datasets.push({
             label: 'Total Oil Consumption',
             backgroundColor: 'rgba(64, 37, 29, 0.5)',
             borderColor: 'rgb(64, 37, 29)',
@@ -153,7 +146,7 @@ const buildEnergyChart = (chartElem, oilBool, coalBool, gasBool, renewBool, dema
     }
 
     if (coalBool){
-        data.datasets.append({
+        data.datasets.push({
             label: 'Total Coal Consumption',
             backgroundColor: 'rgba(0, 0, 0, 0.5)',
             borderColor: 'rgb(0, 0, 0)',
@@ -162,7 +155,7 @@ const buildEnergyChart = (chartElem, oilBool, coalBool, gasBool, renewBool, dema
     }
 
     if (gasBool){
-         data.datasets.append({
+         data.datasets.push({
             label: 'Total Gas Consumption',
             backgroundColor: 'rgba(196, 170, 0, 0.5)',
             borderColor: 'rgb(196, 170, 0)',
@@ -171,7 +164,7 @@ const buildEnergyChart = (chartElem, oilBool, coalBool, gasBool, renewBool, dema
     }
 
     if (renewBool){
-        data.datasets.append({
+        data.datasets.push({
             label: 'Total Nuclear and Renewable Energy Consumption',
             backgroundColor: 'rgba(0, 181, 30, 0.5)',
             borderColor: 'rgb(0, 181, 30)',
@@ -180,7 +173,7 @@ const buildEnergyChart = (chartElem, oilBool, coalBool, gasBool, renewBool, dema
     }
 
     if (demandBool){
-        data.datasets.append({
+        data.datasets.push({
             label: "Demand",
             yAxisID: 'demand_line',
             backgroundColor: 'rgba(255, 120, 250, 0.2)',

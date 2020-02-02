@@ -84,6 +84,21 @@ export const popuation_calc = {
 
 export const energy_calc = {
 
+    calcAvgGrowth: function(array) {
+        let totalChange = 0;
+        let lastItem = -1;
+        array.forEach((item, index) => {
+            if (lastItem == -1) {
+                lastItem = item;
+            } else {
+                totalChange += item/lastItem  - 1;
+                lastItem = item;
+            }
+        });
+
+
+    }
+
     //
     // Per Capita Energy Consumption
     //
