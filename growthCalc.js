@@ -1,14 +1,6 @@
 import { utils } from './utils.js';
 
 // Utilities
-const get_years_array = (size, start_year) => {
-    let years = [];
-    for (let i = 0; i < size; i++) {
-        const x = i + start_year;
-        years.push(x.toString());
-    }
-    return years;
-};
 
 const array_of_years_start_to_end = (start, end) => {
     const size = end - start + 1;
@@ -24,16 +16,10 @@ export const popuation_calc = {
         let pops = [];
         // const e = 2.71828;
         let last_pop = starting_pop;
-        console.log("starting ", starting_pop);
-        let cap_reached = false;
         for (let i = 0; i < num_years; i+= 1) {
             const pop_growth = last_pop*rate*(1-((last_pop-starting_pop)/(carrying_cap - starting_pop)));
             pops.push(Math.round(last_pop + pop_growth));
             last_pop = pops[i];
-            if (last_pop >= carrying_cap * 0.99 && cap_reached == false) {
-                document.getElementById('stable_pop').textContent = i + 2016;
-                cap_reached = true;
-            }
         }
         return pops;
     },

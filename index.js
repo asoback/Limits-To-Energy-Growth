@@ -24,6 +24,8 @@ const modelVariables = {
         carryingCapacityBil: 10,
         peakPopulationBil: 10,
         history: [],
+        prediction: [],
+        stablePopYear: 0,
         lastRate: 0
     },
     energyPerPerson: {
@@ -85,8 +87,8 @@ const populateModelData = () => {
     }
 
     modelVariables.pop.lastRate = ( 
-        modelVariables.pop.history[popIndex -1] / 
-        modelVariables.pop.history[popIndex - 2] ) - 1 ;
+        modelVariables.pop.history[modelVariables.pop.history.length - 1] / 
+        modelVariables.pop.history[modelVariables.pop.history.length - 2] ) - 1 ;
 
     // handle energy data
     indexed_energy_data.forEach((item, index) => {
@@ -118,7 +120,6 @@ const populateModelData = () => {
 
 populateModelData();
 
-console.log(modelVariables);
 
 const generateChart = (chartDiv, data, type = 'line', options = {}) => {
     let ctx = chartDiv.getContext('2d');
@@ -128,6 +129,72 @@ const generateChart = (chartDiv, data, type = 'line', options = {}) => {
         options: options
     });	
 };
+
+
+//
+// Population
+//
+
+// Generate Chart
+const generatePopulationChart = (num_years, carrying_cap) => {
+    modelVariables.pop.carryingCapacityBil = carrying_cap;
+
+    const data = {};
+    // make years
+    data.labels = utils.get_years_array(num_years, modelVariables.startYear);
+    
+    // Calculate predicted populations
+    const less_years = 2018 - 1980; // No predictions for data we'll see.
+    const starting_pop = utils.last(modelVariables.pop.history); // Latest data
+    // Latest year growth rate
+    const starting_rate =  modelVariables.pop.lastRate;
+    // Actual population data
+    const predicted_pop_data = popuation_calc.modeling_population_growth(num_years - less_years, starting_pop, carrying_cap, starting_rate);
+    modelVariables.pop.prediction = predicted_pop_data;
+    const pop_data = modelVariables.pop.history;
+    const whole_pop_data = pop_data.concat(predicted_pop_data);
+    data.datasets = [
+        {
+            label: 'Real Population',
+            borderColor: 'rgb(99, 255, 132)',
+            data: modelVariables.pop.history
+        },
+        {
+            label: 'Projected Population',
+            borderColor: 'rgb(255, 99, 132)',
+            data: whole_pop_data
+        }
+    ];
+
+    generateChart(PopulationChart, data);
+
+    // Stable pop
+    for (let i = 0; i < modelVariables.pop.prediction.length; ++i) {
+        if (modelVariables.pop.prediction[i] >= carrying_cap * 0.99) {
+            document.getElementById('stable_pop').textContent = i + 2016;
+            modelVariables.pop.stablePopYear =  i + 2016;
+            break;
+        }
+    }
+};
+
+// Initial Chart (10 Billion prediction)
+
+generatePopulationChart(modelVariables.endYear - modelVariables.startYear, modelVariables.pop.carryingCapacityBil * utils.BILLION());
+pop_carrying_cap_input.vaue = modelVariables.endYear - modelVariables.startYear;
+
+// Bind buttons
+const recalculate_pop_predictions = () => {
+    const num_years = pop_num_years_input.value;
+    const carrying_cap = pop_carrying_cap_input.value * 1000000000;
+    generatePopulationChart(num_years, carrying_cap);
+};
+
+pop_num_years_input.onchange = recalculate_pop_predictions;
+pop_carrying_cap_input.onchange = recalculate_pop_predictions;
+
+
+
 
 /*
 const buildEnergyChart = (chartElem, oilBool, coalBool, gasBool, renewBool, demandBool) => {
