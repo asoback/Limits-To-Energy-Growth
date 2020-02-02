@@ -1,6 +1,9 @@
 import { energy_data, population_data, non_renewable_reserves, discoveries_data } from './data.js';
 import { globalPrimaryConsumption, globalOilConsumption, globalCoalConsumption, globalNaturalGasConsumption, globalNuclearAndRenewableConsumption} from './GlobalConsumption.js';
 
+import { population } from './data/population.js';
+import { indexed_energy_data } from './data/indexedData.js';
+
 const QUAD = 1000000000000000;
 const TRILLION = 1000000000000;
 const BILLION = 1000000000;

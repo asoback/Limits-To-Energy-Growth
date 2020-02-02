@@ -1,3 +1,4 @@
+export const indexed_energy_data = 
 [
     {
         "years": [
@@ -216,4 +217,4 @@
         "type": "renewables",
         "label": "Nuclear, Renewables, and Other Primary Consumption Global Annual"
     }
-]
+];

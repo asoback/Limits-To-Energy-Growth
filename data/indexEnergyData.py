@@ -4,7 +4,7 @@ import os
 START_VALUE = 100
 CONSUMPTION_INPUT_FILE = 'GlobalConsumption.json'
 RESERVES_INPUT_FILE = 'reserves.json'
-OUTPUT_FILE = 'indexedData.json'
+OUTPUT_FILE = 'indexedData.js'
 
 if os.path.exists(OUTPUT_FILE):
     os.remove(OUTPUT_FILE)
@@ -104,7 +104,6 @@ item_index = len(indexed_energy_dict)
 for item in start_energy_dict:
     if reserveIndexFromType(item["type"]) != -1:
         reserves_indexed_value = dataIndexValue(reserves_dict[reserveIndexFromType(item["type"])],0)
-        print(reserves_indexed_value, item["type"])
     else:
         reserves_indexed_value = -1
     indexed_energy_dict.append({"type": item["type"],
@@ -121,6 +120,9 @@ for item in start_energy_dict:
 
 THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 output = os.path.join(THIS_FOLDER, OUTPUT_FILE)
-with open(output, 'w') as f:
-    f.write(json.dumps(indexed_energy_dict, separators=(',', ': '), indent=4))
 
+final_output = json.dumps(indexed_energy_dict, separators=(',', ': '), indent=4)
+with open(output, 'w') as f:
+    f.write("export const indexed_energy_data = \n")
+    f.write(final_output)
+    f.write(";")
