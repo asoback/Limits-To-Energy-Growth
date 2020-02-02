@@ -80,7 +80,9 @@
             59.88,
             60.53
         ],
-        "type": "Petroleum Primary Consumption Global Annual"
+        "reserve_value": 2882.77,
+        "type": "oil",
+        "label": "Petroleum Primary Consumption Global Annual"
     },
     {
         "data": [
@@ -122,7 +124,9 @@
             74.38,
             73.16
         ],
-        "type": "Coal and Coke Primary Consumption Global Annual"
+        "reserve_value": 9781.23,
+        "type": "coal",
+        "label": "Coal and Coke Primary Consumption Global Annual"
     },
     {
         "data": [
@@ -164,7 +168,9 @@
             39.61,
             40.41
         ],
-        "type": "Natural Gas Primary Consumption Global Annual"
+        "reserve_value": 2187.49,
+        "type": "natural_gas",
+        "label": "Natural Gas Primary Consumption Global Annual"
     },
     {
         "data": [
@@ -206,6 +212,8 @@
             24.96,
             26.18
         ],
-        "type": "Nuclear, Renewables, and Other Primary Consumption Global Annual"
+        "reserve_value": -1,
+        "type": "renewables",
+        "label": "Nuclear, Renewables, and Other Primary Consumption Global Annual"
     }
 ]

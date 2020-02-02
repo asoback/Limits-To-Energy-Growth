@@ -39,6 +39,8 @@ def checkDataDictType(dataDict):
 # Conversion functions
 # take data object, and index place
 # return value in Quad BTU
+
+# TODO explain to myself how this equation does (why the extra 0s?)
 def convertMillionBarrelsDayToQBTU(dataDict, index):
     assert(checkDataDictType(dataDict) == "Mb/d")
     # 1 million barrel oil = .00555136 quad btu
@@ -61,10 +63,10 @@ def QBTU2QBTU(dataDict, index):
 def BB2QBTU(dataDict, index):
     assert(checkDataDictType(dataDict) ==  "Billion Barrels")
     # 1 million barrel oil = .00555136 quad btu
-    return round(dataDict["data"][index] * 1000 * 0.00000555, 2)
+    return round(dataDict["data"][index] * 1000 * 0.00555, 2)
 
 def TCF2QBTU(dataDict, index):
-     assert(checkDataDictType(dataDict) == "Trillion Cubic Feet")
+    assert(checkDataDictType(dataDict) == "Trillion Cubic Feet")
     # Billion cubicfeet gas = .001027 quad btu
     return round(dataDict["data"][index] * 1000 * 0.001027, 2)
 
@@ -86,14 +88,35 @@ total_demand_year_0 = 0
 for item in start_energy_dict:
     total_demand_year_0 = total_demand_year_0 + convertDatatoQBTU(item, 0)
 
+# find index for reserves
+def reserveIndexFromType(type):
+    reserves_idx = 0
+    for item in reserves_dict:
+        if item["type"] == type:
+            return reserves_idx
+        reserves_idx = reserves_idx + 1
+    return -1
+
+def dataIndexValue(item, data_index):
+    return round(convertDatatoQBTU(item, data_index) / total_demand_year_0 * START_VALUE, 2)
+
 item_index = len(indexed_energy_dict)
 for item in start_energy_dict:
-    indexed_energy_dict.append({"type": item["type"], "data": []})
+    if reserveIndexFromType(item["type"]) != -1:
+        reserves_indexed_value = dataIndexValue(reserves_dict[reserveIndexFromType(item["type"])],0)
+        print(reserves_indexed_value, item["type"])
+    else:
+        reserves_indexed_value = -1
+    indexed_energy_dict.append({"type": item["type"],
+        "label": item["label"],
+        "reserve_value": reserves_indexed_value,
+        "data": []})
     data_index = 0
     for data_item in item["data"]:
-        indexed_energy_dict[item_index]["data"].append(round(convertDatatoQBTU(item, data_index) / total_demand_year_0 * START_VALUE, 2))
+        indexed_energy_dict[item_index]["data"].append(dataIndexValue(item, data_index))
         data_index = data_index + 1
     item_index = item_index + 1
+
 
 
 THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
