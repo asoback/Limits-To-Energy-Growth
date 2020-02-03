@@ -111,6 +111,18 @@ export const energy_calc = {
         return calculatedData;
     },
 
+        // Flat Consumption
+    getFlatConsumptionArray: function(amount, rate) {
+        const useArray = [];
+        let amountRemaining = amount;
+        while (amountRemaining > 0) {
+            const annualUse = Math.min(rate, amountRemaining);
+            amountRemaining -= annualUse;
+            useArray.push(annualUse);
+        }
+        return useArray;
+    },
+
     //
     // Per Capita Energy Consumption
     //
@@ -221,19 +233,6 @@ export const energy_calc = {
     //         return [];
     //     }
     // };
-
-    // // Flat Consumption
-    // const getFlatConsumptionArray = (amount, rate) => {
-    //     const useArray = [];
-    //     let amountRemaining = amount;
-    //     while (amountRemaining > 0) {
-    //         const annualUse = Math.min(rate, amountRemaining);
-    //         amountRemaining -= annualUse;
-    //         useArray.push(annualUse);
-    //     }
-    //     return useArray;
-    // };
-
 
 
     // const steadyIncreaseConsumption = (startingAmount, rate, years) => {

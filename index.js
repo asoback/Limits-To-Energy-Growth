@@ -38,6 +38,7 @@ const modelVariables = {
         floorIndex: 0,
         peakIndex: 0,
         yearsRemaining: 0,
+        reserveValue: 0,
         history: [],
         prediction: [],
         rateOfIncrease: 0
@@ -46,6 +47,7 @@ const modelVariables = {
         floorIndex: 0,
         peakIndex: 0,
         yearsRemaining: 0,
+        reserveValue: 0,
         history: [],
         prediction: [],
         rateOfIncrease: 0
@@ -54,6 +56,7 @@ const modelVariables = {
         floorIndex: 0,
         peakIndex: 0,
         yearsRemaining: 0,
+        reserveValue: 0,
         history: [],
         prediction: [],
         rateOfIncrease: 0
@@ -62,6 +65,7 @@ const modelVariables = {
         floorIndex: 0,
         peakIndex: 0,
         yearsRemaining: 0,
+        reserveValue: 0,
         history: [],
         prediction: [],
         rateOfIncrease: 0
@@ -103,6 +107,7 @@ const populateModelData = () => {
             modelVariables[energySource].history = item.data;
             modelVariables[energySource].peakIndex = utils.last(modelVariables[energySource].history);
             modelVariables[energySource].rateOfIncrease = energy_calc.calcAvgGrowth(modelVariables[energySource].history);
+            modelVariables[energySource].reserveValue = item.reserve_value;
         }
     });
 
@@ -299,35 +304,28 @@ const generateHistoricalChart = () => {
 generateHistoricalChart();
 
 
-/*
 
-
+//
+//
+//
+//
 
 
 const generateFlatConsumtionChart = (renewables_rate_change) => {
-    // Divide up data by type
-    let years = array_of_years_start_to_end(1980, 2016);
-    let coal = getData(1980, 2016, globalCoalConsumption);
-    let oil = getData(1980, 2016, globalOilConsumption);
-    let natural_gas = getData(1980, 2016, globalNaturalGasConsumption);
-    let renewables =  getData(1980, 2016, globalNuclearAndRenewableConsumption);
-    renewables = roundArray(renewables);
     // Add data at flat rate or less until 0d
     // oil
-    const btuRemainingOil = convert_barrels_oil_to_quad_btu(non_renewable_reserves.oil.proven);
-    const lastOilRate = oil[oil.length - 1];
-    let flatConsumptionOil = oil.concat(getFlatConsumptionArray(btuRemainingOil, lastOilRate));
+    const lastOilRate = utils.last(modelVariables.oil.history);
+    let flatConsumptionOil = modelVariables.oil.history.concat(energy_calc.getFlatConsumptionArray(modelVariables.oil.reserveValue, lastOilRate));
     let longestLen = flatConsumptionOil.length;
 
     // coal
-    const btuRemainingCoal = convert_coal_to_btu(non_renewable_reserves.coal.proven);
-    const lastCoalRate = coal[coal.length - 1];
-    let flatConsumptionCoal = coal.concat(getFlatConsumptionArray(btuRemainingCoal, lastCoalRate));
+    const lastCoalRate = utils.last(modelVariables.coal.history);
+    let flatConsumptionCoal = modelVariables.coal.history.concat(energy_calc.getFlatConsumptionArray(modelVariables.coal.reserveValue, lastCoalRate));
     longestLen = Math.max(longestLen, flatConsumptionCoal.length);
+
     // gas
-    const btuRemainingNaturalGas = convert_natural_gas_to_btu(non_renewable_reserves.natural_gas.proven);
-    const lastNaturalGasRate = natural_gas[natural_gas.length - 1];
-    let flatConsumptionGas = natural_gas.concat(getFlatConsumptionArray(btuRemainingNaturalGas, lastNaturalGasRate));
+    const lastGasRate = utils.last(modelVariables.natural_gas.history);
+    let flatConsumptionGas = modelVariables.natural_gas.history.concat(energy_calc.getFlatConsumptionArray(modelVariables.natural_gas.reserveValue, lastGasRate));
     longestLen = Math.max(longestLen, flatConsumptionGas.length);
 
     // Additional chart space
@@ -335,52 +333,16 @@ const generateFlatConsumtionChart = (renewables_rate_change) => {
     longestLen = longestLen + extraYears;
 
     // zero fill
-    flatConsumptionOil = zeroFillArrayBack(flatConsumptionOil, longestLen+ 10);
-    flatConsumptionCoal = zeroFillArrayBack(flatConsumptionCoal, longestLen + 10);
-    flatConsumptionGas = zeroFillArrayBack(flatConsumptionGas, longestLen + 10);
+    flatConsumptionOil = utils.zeroFillArrayBack(flatConsumptionOil, longestLen+ 10);
+    flatConsumptionCoal = utils.zeroFillArrayBack(flatConsumptionCoal, longestLen + 10);
+    flatConsumptionGas = utils.zeroFillArrayBack(flatConsumptionGas, longestLen + 10);
+
     // increase steadily renewables and nuclear
-    const primary_energy =  addWithNonRenewables(getData(1980, 2016, globalPrimaryConsumption), renewables);
-    renewables = expandDataWithSteadyIncreaseConsumption(renewables, longestLen - years.length, renewables_rate_change);
-    // get years
-    const fullYearsArray = yearsPlusMoreYears(years, longestLen - years.length);
+    // const primary_energy =  addWithNonRenewables(getData(1980, 2016, globalPrimaryConsumption), renewables);
+    // renewables = expandDataWithSteadyIncreaseConsumption(renewables, longestLen - years.length, renewables_rate_change);
+    // // get years
+    // const fullYearsArray = yearsPlusMoreYears(years, longestLen - years.length);
     
-    // chart
-    const data = {};
-    data.labels = fullYearsArray;
-    data.datasets = [
-        {
-            label: "Coal Consumption",
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            borderColor: 'rgb(0, 0, 0)',
-            data: flatConsumptionCoal
-        },
-        {
-            label: "Natural Gas Consumption",
-            backgroundColor: 'rgba(148, 118, 0, 0.5)',
-            borderColor: 'rgb(148, 118, 0)',
-            data: flatConsumptionGas
-        },
-        {
-            label: "Oil Consumption",
-            backgroundColor: 'rgba(82, 50, 29, 0.5)',
-            borderColor: 'rgb(82, 50, 29)',
-            data: flatConsumptionOil
-        },
-        {
-            label: "Renewables Consumption",
-            backgroundColor: 'rgba(0, 161, 5, 0.5)',
-            borderColor: 'rgb(0, 161, 5)',
-            data: renewables
-        }
-    ];
-    const options = {
-        scales: {
-            yAxes: [{
-                stacked: true
-            }]
-        }
-    };
-    generateChart(flatConsumptionChart, data, 'line', options);
 };
 
 generateFlatConsumtionChart(renewables_rate_input.value * 0.01);
@@ -389,6 +351,11 @@ renewables_rate_input.onchange = () => {
     generateFlatConsumtionChart(renewables_rate_input.value * 0.01);
     renewables_rate_input_2.value = renewables_rate_input.value;
 };
+
+
+
+
+/*
 
 
 const generateMyPredictionChart = (renewables_rate_change) => {
