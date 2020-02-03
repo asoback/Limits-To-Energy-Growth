@@ -31,6 +31,7 @@ const modelVariables = {
     energyPerPerson: {
         peakIndex: 0,
         history: [],
+        prediction: [],
         rateOfIncrease: 0
     },
     renewables: {
@@ -38,6 +39,7 @@ const modelVariables = {
         peakIndex: 0,
         yearsRemaining: 0,
         history: [],
+        prediction: [],
         rateOfIncrease: 0
     },
     coal: {
@@ -45,6 +47,7 @@ const modelVariables = {
         peakIndex: 0,
         yearsRemaining: 0,
         history: [],
+        prediction: [],
         rateOfIncrease: 0
     },
     oil: {
@@ -52,6 +55,7 @@ const modelVariables = {
         peakIndex: 0,
         yearsRemaining: 0,
         history: [],
+        prediction: [],
         rateOfIncrease: 0
     },
     natural_gas: {
@@ -59,6 +63,7 @@ const modelVariables = {
         peakIndex: 0,
         yearsRemaining: 0,
         history: [],
+        prediction: [],
         rateOfIncrease: 0
     },
     demand: {
@@ -66,6 +71,7 @@ const modelVariables = {
         peakIndex: 0,
         yearsRemaining: 0,
         history: [],
+        prediction: [],
         rateOfIncrease: 0
     }
     
@@ -194,113 +200,109 @@ pop_num_years_input.onchange = recalculate_pop_predictions;
 pop_carrying_cap_input.onchange = recalculate_pop_predictions;
 
 
+// Generic energy graphing function
+// params: each data product: coal, oil, gas, renewables, total, demand
+// everything else gets handled by the variables? yes set in the functions before calling, set back when done?
+// all bools
 
-
-/*
-const buildEnergyChart = (chartElem, oilBool, coalBool, gasBool, renewBool, demandBool) => {
+const generateEnergyChart = (chart, coal = false, oil = false, gas = false, renewables = false, demand = false, lookAhead = 0) => {
     const type = 'line';
     const data = {};
-    data.labels = array_of_years_start_to_end(modelVariables.startYear, modelVariables.endYear);
+    // make years
+    const num_years = modelVariables.endYear - modelVariables.startYear;
+    data.labels = utils.get_years_array(num_years, modelVariables.startYear);
     data.datasets = [];
-
-    if (oilBool){
-         data.datasets.push({
-            label: 'Total Oil Consumption',
-            backgroundColor: 'rgba(64, 37, 29, 0.5)',
-            borderColor: 'rgb(64, 37, 29)',
-            data: getEnergyData(modelVariables.startYear, modelVariables.endYear,  modelVariables.oil),
-        });
-    }
-
-    if (coalBool){
+    if (coal){
         data.datasets.push({
             label: 'Total Coal Consumption',
             backgroundColor: 'rgba(0, 0, 0, 0.5)',
             borderColor: 'rgb(0, 0, 0)',
-            data: getEnergyData(modelVariables.startYear, modelVariables.endYear, modelVariables.coal),
+            data: modelVariables.coal.history.concat(modelVariables.coal.prediction)
         });
     }
-
-    if (gasBool){
+    if (oil){
+        data.datasets.push({
+            label: 'Total Oil Consumption',
+            backgroundColor: 'rgba(64, 37, 29, 0.5)',
+            borderColor: 'rgb(64, 37, 29)',
+            data: modelVariables.oil.history.concat(modelVariables.oil.prediction),
+        });
+    }
+    if (gas){
          data.datasets.push({
             label: 'Total Gas Consumption',
             backgroundColor: 'rgba(196, 170, 0, 0.5)',
             borderColor: 'rgb(196, 170, 0)',
-            data: getEnergyData(modelVariables.startYear, modelVariables.endYear,  modelVariables.oil),
+            data: modelVariables.natural_gas.history.concat(modelVariables.natural_gas.prediction),
         });
     }
-
-    if (renewBool){
+    if (renewables){
         data.datasets.push({
             label: 'Total Nuclear and Renewable Energy Consumption',
             backgroundColor: 'rgba(0, 181, 30, 0.5)',
             borderColor: 'rgb(0, 181, 30)',
-            data: getEnergyData(modelVariables.startYear, modelVariables.endYear, modelVariables.coal),
+            data: modelVariables.renewables.history.concat(modelVariables.renewables.prediction),
         });
     }
 
-    if (demandBool){
+    if (demand){
         data.datasets.push({
             label: "Demand",
-            yAxisID: 'demand_line',
+            yAxisID: 'unstacked_line',
             backgroundColor: 'rgba(255, 120, 250, 0.2)',
             borderColor: 'rgb(255, 120, 250)',
-            data: getEnergyData(modelVariables.startYear, modelVariables.endYear, modelVariables.coal),
+            data: modelVariables.demand.history.concat(modelVariables.demand.prediction),
         });
     }
+
+    const n = utils.last(modelVariables.demand.history.concat(modelVariables.demand.prediction));
+    console.log(n);
+    const max_ticks = Math.ceil((n)/50)*50;
 
     const options = {
         scales: {
             yAxes: [{
-                stacked: true
+                stacked: true,
+                ticks: {
+                    beginAtZero: true,
+                    min: 0,
+                    max: max_ticks
+                },
+            },{
+                id: 'unstacked_line',
+                stacked: false,
+                display: false, // ticks on y axis
+                ticks: {
+                    beginAtZero: true,
+                    min: 0,
+                    max: max_ticks
+                },
             }]
         }
     };
-
-    generateChart(chartElem, data, type, options);
+    generateChart(chart, data, type, options);
 };
 
 // Historical
 const generateHistoricalChart = () => {
-    const data = {};
-    data.labels = array_of_years_start_to_end(1980, 2016);
-    data.datasets = [
-        {
-            label: 'Total Nuclear and Renewable Energy Consumption',
-            backgroundColor: 'rgba(0, 181, 30, 0.5)',
-            borderColor: 'rgb(0, 181, 30)',
-            data: getData(1980, 2016, globalNuclearAndRenewableConsumption),
-        },
-        { 
-            label: 'Total Coal Consumption',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            borderColor: 'rgb(0, 0, 0)',
-            data: getData(1980, 2016, globalCoalConsumption),
-        },
-        {
-            label: 'Total Gas Consumption',
-            backgroundColor: 'rgba(196, 170, 0, 0.5)',
-            borderColor: 'rgb(196, 170, 0)',
-            data: getData(1980, 2016, globalNaturalGasConsumption),
-        },
-        {
-            label: 'Total Oil Consumption',
-            backgroundColor: 'rgba(64, 37, 29, 0.5)',
-            borderColor: 'rgb(64, 37, 29)',
-            data: getData(1980, 2016, globalOilConsumption),
-        },
-    ];
-    const options = {
-        scales: {
-            yAxes: [{
-                stacked: true
-            }]
-        }
-    };
-    generateChart(historicalChart, data, 'line', options);
+    // How many years to look forward
+    const lookAhead = 10;
+    modelVariables.endYear =  modelVariables.startYear + modelVariables.historicalYears + lookAhead;
+    modelVariables.oil.prediction = [];
+    modelVariables.coal.prediction = [];
+    modelVariables.natural_gas.prediction = [];
+    modelVariables.renewables.prediction = [];
+    modelVariables.demand.prediction = [];
+    generateEnergyChart(historicalChart, true, true, true, true, false);
 };
 
 generateHistoricalChart();
+
+
+/*
+
+
+
 
 const generateFlatConsumtionChart = (renewables_rate_change) => {
     // Divide up data by type

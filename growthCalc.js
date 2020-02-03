@@ -81,9 +81,35 @@ export const energy_calc = {
                 lastItem = item;
             }
         });
+    },
 
+    getEnergyData: function(startYear, endYear, data) {
+        let i = 0;
+        const calculatedData = [];
+        while (i < data.history.length()) {
+            calculatedData.append(data.history[i]);
+            ++i;
+        }
+        let currentYear = startYear + i;
 
-    }
+        let lastValue = data.history[i - 1];
+        amountRemaning = lastValue * data.yearsRemaining;
+        while (currentYear <= endYear) {
+            if (lastValue >= data.peakIndex * 0.95){
+                // fall
+                const lessValue = lastValue * data.rateOfIncrease * (1 - ((data.peakIndex - lastValue) / (data.peakIndex - data.floorIndex)));
+                lastValue = lastValue + lessValue;
+            } else {
+                // rise or stay flat
+                const growthValue = lastValue * data.rateOfIncrease * (1 - ((lastValue - data.history[0]) / (data.peakIndex - data.history[0])));
+                lastValue = lastValue + growthValue;
+            }
+            calculatedData.append(Math.min(lastValue, amountRemaining));
+            amountRemaining = amountRemaining - lastValue;
+            ++currentYear;
+        }
+        return calculatedData;
+    },
 
     //
     // Per Capita Energy Consumption
@@ -172,33 +198,7 @@ export const energy_calc = {
     //     return a;
     // };
 
-    // const getEnergyData = (startYear, endYear, data) => {
-    //     let i = 0;
-    //     const calculatedData = [];
-    //     while (i < data.history.length()) {
-    //         calculatedData.append(data.history[i]);
-    //         ++i;
-    //     }
-    //     let currentYear = startYear + i;
 
-    //     let lastValue = data.history[i - 1];
-    //     amountRemaning = lastValue * data.yearsRemaining;
-    //     while (currentYear <= endYear) {
-    //         if (lastValue >= data.peakIndex * 0.95){
-    //             // fall
-    //             const lessValue = lastValue * data.rateOfIncrease * (1 - ((data.peakIndex - lastValue) / (data.peakIndex - data.floorIndex)));
-    //             lastValue = lastValue + lessValue;
-    //         } else {
-    //             // rise or stay flat
-    //             const growthValue = lastValue * data.rateOfIncrease * (1 - ((lastValue - data.history[0]) / (data.peakIndex - data.history[0])));
-    //             lastValue = lastValue + growthValue;
-    //         }
-    //         calculatedData.append(Math.min(lastValue, amountRemaining));
-    //         amountRemaining = amountRemaining - lastValue;
-    //         ++currentYear;
-    //     }
-    //     return calculatedData;
-    // };
 
     // const getData = (start_year, end_year, dataset) => {
     //     const start_idx = dataset.years.indexOf(start_year);
