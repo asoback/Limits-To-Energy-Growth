@@ -61,6 +61,7 @@ export const popuation_calc = {
         const finalAmount = Number(startPop) * rateToPower;
         return Math.round(finalAmount);
     }
+
 };
 
 
@@ -81,6 +82,7 @@ export const energy_calc = {
                 lastItem = item;
             }
         });
+        return totalChange/(array.length - 1);
     },
 
     getEnergyData: function(startYear, endYear, data) {
@@ -123,6 +125,47 @@ export const energy_calc = {
         return useArray;
     },
 
+    steadyIncreaseConsumption: function(startingAmount, rate, years) {
+        console.log("starting:", startingAmount);
+        console.log("rate:", rate);
+    console.log("years", years);
+        const array = [];
+        let previousAmount = startingAmount;
+        for (let i = 0; i < years; i++) {
+            previousAmount = previousAmount * (1 + rate);
+            array.push(previousAmount);
+        }
+        return array;
+    },
+    
+    sumArrays: function(array1, array2, array3 = null, array4 = null) {
+        const returnArray = [];
+        let longestArrayLen = Math.max(array1.length, array2.length);
+        if (array3) {
+            longestArrayLen = Math.max(array3.length, longestArrayLen);
+        }
+        if (array4) {
+            longestArrayLen = Math.max(array4.length,longestArrayLen);
+        }
+        for (let i = 0; i < longestArrayLen; i++) {
+            let total = 0;
+            if (array1.length > i) {
+                total += array1[i];
+            }
+            if (array2.length > i) {
+                total += array2[i];
+            }
+            if (array3 & array3.length > i) {
+                total += array3[i];
+            }
+            if (array4 & array4.length > i) {
+                total += array4[i];
+            }
+            returnArray.push(total);
+        }
+
+        return returnArray;
+    },
     //
     // Per Capita Energy Consumption
     //
@@ -234,25 +277,6 @@ export const energy_calc = {
     //     }
     // };
 
-
-    // const steadyIncreaseConsumption = (startingAmount, rate, years) => {
-    //     const array = [];
-    //     let previousAmount = startingAmount;
-    //     for (let i = 0; i < years; i++) {
-    //         previousAmount = previousAmount * (1 + rate);
-    //         array.push(previousAmount);
-    //     }
-    //     return array;
-    // };
-
-    // const expandDataWithSteadyIncreaseConsumption = (data, yearsToGrow, rate = 0) => {
-    //     const startingAmount = data[data.length - 1];
-    //     if (data.length < 2) {
-    //         return data;
-    //     }
-    //     const predictionArray = steadyIncreaseConsumption(startingAmount, rate, yearsToGrow);
-    //     return data.concat(predictionArray);
-    // };
 
     // // 1 barrel of oil is approx 5.7 Million BTUs
     // const convert_barrels_oil_to_quad_btu = (barrels) => {
