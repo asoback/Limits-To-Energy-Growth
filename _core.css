@@ -21,6 +21,8 @@ body {
   background: var(--background-body);
 
   text-rendering: optimizeLegibility;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
 }
 
 button, input, textarea {
@@ -117,5 +119,5 @@ mark {
 
 .grid-column {
   display: grid;
-  grid-template-columns: auto auto auto auto;
+  grid-column: 2;
 }
