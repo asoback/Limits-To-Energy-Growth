@@ -115,7 +115,7 @@ mark {
   color: #000000;
 }
 
-.grid-container {
+.grid-column {
   display: grid;
   grid-template-columns: auto auto auto auto;
 }
