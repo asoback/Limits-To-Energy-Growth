@@ -114,3 +114,8 @@ mark {
   padding: 0px 2px 0px 2px;
   color: #000000;
 }
+
+.grid-container {
+  display: grid;
+  grid-template-columns: auto auto auto auto;
+}
