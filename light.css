@@ -13,5 +13,5 @@
  * so the theming can be adjusted at runtime.
  */
 
-@import '../variables-light.css';
-@import '../parts/_core.css';
+@import 'variables-light.css';
+@import '_core.css';
