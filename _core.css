@@ -21,7 +21,7 @@ body {
   background: var(--background-body);
 
   text-rendering: optimizeLegibility;
-  display: grid;
+  display: block;
   grid-template-columns: repeat(3, 1fr);
 }
 
@@ -115,6 +115,10 @@ mark {
   border-radius: 2px;
   padding: 0px 2px 0px 2px;
   color: #000000;
+}
+
+.container {
+  display: grid;
 }
 
 .grid-column {
