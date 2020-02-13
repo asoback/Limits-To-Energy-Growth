@@ -104,3 +104,8 @@ a[href^='sms\:']::before {
  width: 20%;
  background-color: purple;
 }
+
+.chart {
+  margin-top: 20px;
+  margin-bottom: 20%;
+}
