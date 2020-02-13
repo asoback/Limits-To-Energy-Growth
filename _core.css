@@ -118,10 +118,13 @@ mark {
 }
 
 .container {
-  display: grid;
+  display: flex;
 }
 
 .grid-column {
-  display: grid;
-  grid-column: 2;
+  width: 20%;
+}
+
+.grid-column-right {
+ background-color: purple;
 }
