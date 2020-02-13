@@ -7,11 +7,111 @@
  * THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANT *IES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-/**
- * Standalone light-themed version.
- * Includes light variables and core, left as CSS variables
- * so the theming can be adjusted at runtime.
- */
 
-@import 'variables-light.css';
-@import '_core.css';
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  line-height: 1.4;
+
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 0 10px;
+  word-wrap: break-word;
+
+  color: black;
+  background: red;
+
+  text-rendering: optimizeLegibility;
+  display: block;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+ 
+h1 {
+  font-size: 2.2em;
+  margin-top: 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin-bottom: 12px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+strong {
+  color: #010101;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+b,
+strong,
+th {
+  font-weight: 600;
+}
+
+q::before {
+   content: none;
+}
+
+q::after {
+   content: none;
+}
+
+blockquote, q {
+  border-left: 4px solid blue;
+  margin: 1.5em 0em;
+  padding: 0.5em 1em;
+  font-style: italic;
+}
+
+blockquote > footer {
+  font-style: normal;
+  border: 0;
+}
+
+blockquote cite {
+  font-style: normal;
+}
+
+address {
+  font-style: normal;
+}
+
+a[href^='mailto\:']::before {
+  content: '📧 ';
+}
+
+a[href^='tel\:']::before {
+  content: '📞 ';
+}
+
+a[href^='sms\:']::before {
+  content: '💬 ';
+}
+
+.container {
+  display: flex;
+}
+
+.grid-column-left {
+  width: 20%;
+}
+
+.grid-column-right {
+ width: 20%;
+ background-color: purple;
+}
