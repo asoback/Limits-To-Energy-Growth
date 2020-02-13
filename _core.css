@@ -121,10 +121,11 @@ mark {
   display: flex;
 }
 
-.grid-column {
+.grid-column-left {
   width: 20%;
 }
 
 .grid-column-right {
+ width: 20%;
  background-color: purple;
 }
