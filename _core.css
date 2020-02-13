@@ -18,7 +18,7 @@ body {
   word-wrap: break-word;
 
   color: var(--text-main);
-  background: var(--background-body);
+  background: black;
 
   text-rendering: optimizeLegibility;
   display: block;
