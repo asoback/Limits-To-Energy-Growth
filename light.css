@@ -2,7 +2,6 @@ body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   line-height: 1.4;
 
-  max-width: 800px;
   margin: 20px auto;
   padding: 0 10px;
   word-wrap: break-word;
@@ -96,6 +95,10 @@ a[href^='sms\:']::before {
   display: flex;
 }
 
+.grid-column {
+  max-width: 60%;
+}
+
 .grid-column-left {
   width: 20%;
 }
@@ -108,4 +111,5 @@ a[href^='sms\:']::before {
 .chart {
   margin-top: 20px;
   margin-bottom: 20px;
+  max-width: 100%;
 }
