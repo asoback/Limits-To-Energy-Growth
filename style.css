@@ -14,6 +14,24 @@ body {
   grid-template-columns: repeat(3, 1fr);
 }
 
+.container {
+  display: flex;
+  margin: 10px;
+}
+
+.grid-column {
+  max-width: 60%;
+}
+
+.grid-column-left {
+  width: 20%;
+}
+
+.grid-column-right {
+ width: 20%;
+ background-color: purple;
+}
+
  
 h1 {
   font-size: 2.2em;
@@ -89,23 +107,6 @@ a[href^='tel\:']::before {
 
 a[href^='sms\:']::before {
   content: '💬 ';
-}
-
-.container {
-  display: flex;
-}
-
-.grid-column {
-  max-width: 60%;
-}
-
-.grid-column-left {
-  width: 20%;
-}
-
-.grid-column-right {
- width: 20%;
- background-color: purple;
 }
 
 .chart {
