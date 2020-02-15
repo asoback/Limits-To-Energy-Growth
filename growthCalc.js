@@ -126,9 +126,6 @@ export const energy_calc = {
     },
 
     steadyIncreaseConsumption: function(startingAmount, rate, years) {
-        console.log("starting:", startingAmount);
-        console.log("rate:", rate);
-    console.log("years", years);
         const array = [];
         let previousAmount = startingAmount;
         for (let i = 0; i < years; i++) {

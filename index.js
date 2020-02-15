@@ -107,7 +107,6 @@ const populateModelData = () => {
             modelVariables[energySource].history = item.data;
             modelVariables[energySource].peakIndex = utils.last(modelVariables[energySource].history);
             modelVariables[energySource].rateOfIncrease = energy_calc.calcAvgGrowth(modelVariables[energySource].history);
-            console.log(energySource, modelVariables[energySource].rateOfIncrease);
             modelVariables[energySource].reserveValue = item.reserve_value;
         }
     });
@@ -260,10 +259,31 @@ const generateEnergyChart = (chart, coal = false, oil = false, gas = false, rene
             data: modelVariables.demand.history.concat(modelVariables.demand.prediction),
         });
     }
-
-    const n = utils.last(modelVariables.demand.history.concat(modelVariables.demand.prediction));
+    
+    let n = Math.max(utils.last(modelVariables.oil.history),
+        utils.last(modelVariables.coal.history),
+        utils.last(modelVariables.natural_gas.history),
+        utils.last(modelVariables.renewables.history),
+        utils.last(modelVariables.demand.history));
+    
+    if (modelVariables.oil.prediction.length > 1) {
+        n = Math.max(n, utils.last(modelVariables.oil.prediction));
+    }
+    if (modelVariables.coal.prediction.length > 1) {
+        n = Math.max(n, utils.last(modelVariables.coal.prediction));
+    }
+    if (modelVariables.natural_gas.prediction.length > 1) {
+        n = Math.max(n, utils.last(modelVariables.natural_gas.prediction));
+    }
+    if (modelVariables.renewables.prediction.length > 1) {
+        n = Math.max(n, utils.last(modelVariables.renewables.prediction));
+    }
+    if (modelVariables.demand.prediction.length > 1) {
+        n = Math.max(n, utils.last(modelVariables.demand.prediction));
+    }
+    
     const max_ticks = Math.ceil((n)/50)*50;
-
+    console.log(n);
     const options = {
         scales: {
             yAxes: [{
@@ -319,7 +339,7 @@ const generateFlatConsumtionChart = (renewables_rate_change) => {
     const lastOilRate = utils.last(modelVariables.oil.history);
     modelVariables.oil.prediction = 
         energy_calc.getFlatConsumptionArray(modelVariables.oil.reserveValue, lastOilRate);
-    let longestLen = modelVariables.oil.prediction;
+    let longestLen = modelVariables.oil.prediction.length;
 
     // coal
     const lastCoalRate = utils.last(modelVariables.coal.history);
@@ -355,8 +375,6 @@ const generateFlatConsumtionChart = (renewables_rate_change) => {
         modelVariables.natural_gas.prediction,
         modelVariables.renewables.prediction);
 
-    console.log(modelVariables.demand.history);
-    console.log(modelVariables.demand.prediction);
     generateEnergyChart(flatConsumptionChart, true, true, true, true, false);
 };
 
