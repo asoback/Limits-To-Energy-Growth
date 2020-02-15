@@ -5,158 +5,164 @@
     <title>Running out of time</title>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
     <script type="module" src="./index.js"></script>
+    <link rel="stylesheet" href="./light.css">
 </head>
 <body>
-	<!-- Title, brief description, historical chart -->
-	<div>
-		<h1>How Long Do We Have Left</h1>
-		<h6>Convert Now!</h6>
-		<p>Here's how much oil the US Government <sup><a href="">[1]</a></sup></p> says that the whole world has used since the 80s.
-		<div style="width:800px">
-			<canvas class="chart" id="historicalChart"></canvas>
-		</div>
-		<hr>
-	</div>
-	</div>
-	<!-- what we have left chart -->
-	<div>
-		<p>When scientists<sup><a href="">[1]</a></sup>, the government<sup><a href="">[2]</a></sup>, or others say things like </p>
-		<quote>At current rates of use, we have about 52 years of oil left</quote>
-		<p>This is what that looks like, graphed</p>
-		<div style="width:800px">
-			<canvas class="chart" id="flatConsumptionChart"></canvas>
-		</div>
+	<div class="container">
+	<div class="grid-column grid-column-left"></div>
+	<div class="grid-column">
+		<!-- Title, brief description, historical chart -->
 		<div>
-			<label for="renewables_rate">Rate of growth for renewables and nuclear</label>
-			<input id="renewables_rate" type="number" value="2" max="5" min="0" step=".1">%
-			<p>2% is what is generally expected <sup>[citation needed]</sup>.</p>
-			<p>Not exactly likely scenario though is it?</p>
-		</div>
-		<hr>
-	</div>
-
-	<!--  Here's what it might look like with prediction -->
-	<div>
-		<p>Making a few assumptions about the future, I can think about what the new few hundred years might look like</p>
-		<p>The growth of renewables and nuclear energy remains the same,
-			while the growth of non-renewables declines.
-		</p>
-		<p>Here is where we start to see a real problem: The demand line, in pink.
-			The further it gets from the total supply, likely the more it energy of any
-			type will cost.
-		</p>
-
-		<div style="width:800px">
-			<canvas class="chart" id="myPredictionChart"></canvas>
-		</div>
-		<div>
-			<label for="demand_rate">Rate of growth for demand</label>
-			<input id="demand_rate" type="number" value="2" max="5" min="0" step=".1">%
-			<label for="renewables_rate_2">Rate of growth for renewables and nuclear</label>
-			<input id="renewables_rate_2" type="number" value="2" max="5" min="0" step=".1">%
-		</div>
-		<hr>
-	</div>
-
-	<!-- Explore Assumptions -->
-	<div>
-		<h3>Let's explore some of those assumptions</h3>
-	</div>
-
-	<!-- How could population affect this -->
-	<div>
-		<h3>Population</h3>
-		<p>Some people think the population will just level out at 10 Billion in just a few short years.</p>
-		<p>Others think maybe it'll get to 11, or 12 Billion.</p>
-		<p>Some people think we'll overshoot and our population will have to fall back down to something more sustainable.</p>
-		<p>Still some think our Earthly population could skyrocket much higher.</p>
-		<div style="width:800px">
-			<canvas class="chart" id="PopulationChart"></canvas>
-		</div>
-		<div>
-		    <label for="num_years">Number of Years</label>
-		    <input id="num_years" type="number" value="250" step="50">
-		    <label for="max_pop">Population Carrying Capacity (Billions)</label>
-		    <input id="max_pop" type="number" value="10">
-		</div>
-		<p>The population stabalizes around year <span id="stable_pop">...</span></p>
-		<hr>
-
-		<div>
-			<p>If there is no forseable limit, I won't even show it on a chart.
-				Just play with this compound interest calculator.
-			</p>
-			<div>
-				<label for="compoundStartPop">Starting Population</label>
-				<input id="compoundStartPop" type="number" value="7800000000">
-				<label for="compoundYear">Starting Year</label>
-				<input id="compoundYear" type="number" value="2020">
-				<label for="compoundYearsToGrow">Years to Grow</label>
-				<input id="compoundYearsToGrow" type="number" value="100">
-				<label for="compoundRate">Rate</label>
-				<input id="compoundRate" type="number" value="0.012" step=".001">
-				<button id="compoundSubmit">Go</button>
-			</div>
-			<div>
-				<p id="compoundOutput"></p>
-				<p id="compoundDescription"></p>
+			<h1>Limits to Energy Growth</h1>
+			<h6>Title in progress while I work on charts</h6>
+			<p>Here's how much oil the US Government <sup><a href="">[1]</a></sup></p> says that the whole world has used since the 80s.
+			<div style="width:800px">
+				<canvas class="chart" id="historicalChart"></canvas>
 			</div>
 			<hr>
 		</div>
-	</div>
-
-	<!-- Peak demand per person -->
-	<div>
-		<p>Once we reach the Earth's carrying capacity and our population stabalizes
-			our per capita energy may continue to grow, until perhaps that balances
-			out as well.
-		</p>
-		<div style="width:800px">
-			<canvas class="chart" id="PeakDemandChart"></canvas>
+		<!-- what we have left chart -->
+		<div>
+			<p>When scientists<sup><a href="">[1]</a></sup>, the government<sup><a href="">[2]</a></sup>, or others say things like </p>
+			<quote>At current rates of use, we have about 52 years of oil left</quote>
+			<p>This is what that looks like, graphed</p>
+			<div style="width:800px">
+				<canvas class="chart" id="flatConsumptionChart"></canvas>
+			</div>
+			<div>
+				<label for="renewables_rate">Rate of growth for renewables and nuclear</label>
+				<input id="renewables_rate" type="number" value="2" max="5" min="0" step=".1">%
+				<p>2% is what is generally expected <sup>[citation needed]</sup>.</p>
+				<p>Not exactly likely scenario though is it?</p>
+			</div>
+			<hr>
 		</div>
-		<p>Right now the average person uses around 90 Million BTUs per year</p>
-		<p>The average American, in contrast, uses like 21 times that per year<sup>[citation needed]</sup>	</p>
-		<label for="per_cap_demand">Per Capita Energy Consumption</label>
-		<input id="per_cap_demand" type="number" value="13">
-	</div>
 
-	<!-- How much renewables are undiscovered -->
-	<div>
-		<h3>Undiscovered Resources</h3>
+		<!--  Here's what it might look like with prediction -->
+		<div>
+			<p>Making a few assumptions about the future, I can think about what the new few hundred years might look like</p>
+			<p>The growth of renewables and nuclear energy remains the same,
+				while the growth of non-renewables declines.
+			</p>
+			<p>Here is where we start to see a real problem: The demand line, in pink.
+				The further it gets from the total supply, likely the more it energy of any
+				type will cost.
+			</p>
 
-		<p>The amount of remaining resources so far that we've been discussing
-			are what oil companies are 90% confident we will be able to find and 
-			retrieve. Of course, there may be more that we are able to dig up under
-			the oceans, and climate change melting the polar regions of the planet 
-			will pave the way for even more fossil fuel discoveries. 
-		</p>
-		<p> It's also worth considering that we won't use every last drop 
-			as the climate crisis develops and as our civilization decides to
-			transition to a sustainable future.
-		</p>
-		<div style="width:800px">
-			<canvas class="chart" id="undiscoveredChart"></canvas>
+			<div style="width:800px">
+				<canvas class="chart" id="myPredictionChart"></canvas>
+			</div>
+			<div>
+				<label for="demand_rate">Rate of growth for demand</label>
+				<input id="demand_rate" type="number" value="2" max="5" min="0" step=".1">%
+				<label for="renewables_rate_2">Rate of growth for renewables and nuclear</label>
+				<input id="renewables_rate_2" type="number" value="2" max="5" min="0" step=".1">%
+			</div>
+			<hr>
 		</div>
-		<label for="undiscovered">Extra undiscovered Resouces</label>
-		<input id="undiscovered" type="number" value="25" step="5">%
-		<label for="yearsUntilTurnAround">Years until turn around</label>
-		<input id="yearsUntilTurnAround" type="number" min="0" value="20">
-		<p>For this input, consider the number of years from today, where 
-			society fully commits to divesting in fossil fuels, and each 
-			year we consume less fossil fuels than the previous year.
-		</p>
-		<hr>
-	</div>
 
-	<!-- Conclusion -->
-	<div>
-		<h3>Conclusion</h3>
-		<p>statement</p>
-	</div>
+		<!-- Explore Assumptions -->
+		<div>
+			<h3>Let's explore some of those assumptions</h3>
+		</div>
 
-	<!-- Full chart tuner -->
-	<div>
-		<p>Play with all the chart here...</p>
+		<!-- How could population affect this -->
+		<div>
+			<h3>Population</h3>
+			<p>Some people think the population will just level out at 10 Billion in just a few short years.</p>
+			<p>Others think maybe it'll get to 11, or 12 Billion.</p>
+			<p>Some people think we'll overshoot and our population will have to fall back down to something more sustainable.</p>
+			<p>Still some think our Earthly population could skyrocket much higher.</p>
+			<div style="width:800px">
+				<canvas class="chart" id="PopulationChart"></canvas>
+			</div>
+			<div>
+			    <label for="num_years">Number of Years</label>
+			    <input id="num_years" type="number" value="250" step="50">
+			    <label for="max_pop">Population Carrying Capacity (Billions)</label>
+			    <input id="max_pop" type="number" value="10">
+			</div>
+			<p>The population stabalizes around year <span id="stable_pop">...</span></p>
+			<hr>
+
+			<div>
+				<p>If there is no forseable limit, I won't even show it on a chart.
+					Just play with this compound interest calculator.
+				</p>
+				<div>
+					<label for="compoundStartPop">Starting Population</label>
+					<input id="compoundStartPop" type="number" value="7800000000">
+					<label for="compoundYear">Starting Year</label>
+					<input id="compoundYear" type="number" value="2020">
+					<label for="compoundYearsToGrow">Years to Grow</label>
+					<input id="compoundYearsToGrow" type="number" value="100">
+					<label for="compoundRate">Rate</label>
+					<input id="compoundRate" type="number" value="0.012" step=".001">
+					<button id="compoundSubmit">Go</button>
+				</div>
+				<div>
+					<p id="compoundOutput"></p>
+					<p id="compoundDescription"></p>
+				</div>
+				<hr>
+			</div>
+		</div>
+
+		<!-- Peak demand per person -->
+		<div>
+			<p>Once we reach the Earth's carrying capacity and our population stabalizes
+				our per capita energy may continue to grow, until perhaps that balances
+				out as well.
+			</p>
+			<div style="width:800px">
+				<canvas class="chart" id="PeakDemandChart"></canvas>
+			</div>
+			<p>Right now the average person uses around 90 Million BTUs per year</p>
+			<p>The average American, in contrast, uses like 21 times that per year<sup>[citation needed]</sup>	</p>
+			<label for="per_cap_demand">Per Capita Energy Consumption</label>
+			<input id="per_cap_demand" type="number" value="13">
+		</div>
+
+		<!-- How much renewables are undiscovered -->
+		<div>
+			<h3>Undiscovered Resources</h3>
+
+			<p>The amount of remaining resources so far that we've been discussing
+				are what oil companies are 90% confident we will be able to find and 
+				retrieve. Of course, there may be more that we are able to dig up under
+				the oceans, and climate change melting the polar regions of the planet 
+				will pave the way for even more fossil fuel discoveries. 
+			</p>
+			<p> It's also worth considering that we won't use every last drop 
+				as the climate crisis develops and as our civilization decides to
+				transition to a sustainable future.
+			</p>
+			<div style="width:800px">
+				<canvas class="chart" id="undiscoveredChart"></canvas>
+			</div>
+			<label for="undiscovered">Extra undiscovered Resouces</label>
+			<input id="undiscovered" type="number" value="25" step="5">%
+			<label for="yearsUntilTurnAround">Years until turn around</label>
+			<input id="yearsUntilTurnAround" type="number" min="0" value="20">
+			<p>For this input, consider the number of years from today, where 
+				society fully commits to divesting in fossil fuels, and each 
+				year we consume less fossil fuels than the previous year.
+			</p>
+			<hr>
+		</div>
+
+		<!-- Conclusion -->
+		<div>
+			<h3>Conclusion</h3>
+			<p>statement</p>
+		</div>
+
+		<!-- Full chart tuner -->
+		<div>
+			<p>Play with all the chart here...</p>
+		</div>
+	</div>
+	<div class="grid-column grid-column-right"></div>
 	</div>
 </body>
 </html>
