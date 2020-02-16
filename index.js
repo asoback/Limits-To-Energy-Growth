@@ -210,7 +210,7 @@ pop_carrying_cap_input.onchange = recalculate_pop_predictions;
 // everything else gets handled by the variables? yes set in the functions before calling, set back when done?
 // all bools
 
-const generateEnergyChart = (chart, coal = false, oil = false, gas = false, renewables = false, demand = false, lookAhead = 0) => {
+const generateEnergyChart = (chart, coal = false, oil = false, gas = false, renewables = false, demand = false, max_ticks = 0) => {
     const type = 'line';
     const data = {};
     // make years
@@ -260,30 +260,36 @@ const generateEnergyChart = (chart, coal = false, oil = false, gas = false, rene
         });
     }
     
-    let n = Math.max(utils.last(modelVariables.oil.history),
-        utils.last(modelVariables.coal.history),
-        utils.last(modelVariables.natural_gas.history),
-        utils.last(modelVariables.renewables.history),
-        utils.last(modelVariables.demand.history));
+    if (max_ticks < 200) {
+        let n = Math.max(utils.last(modelVariables.oil.history),
+            utils.last(modelVariables.coal.history),
+            utils.last(modelVariables.natural_gas.history),
+            utils.last(modelVariables.renewables.history),
+            utils.last(modelVariables.demand.history));
+
+        if (oil && modelVariables.oil.prediction.length > 1) {
+            n = Math.max(n, utils.last(modelVariables.oil.prediction));
+        }
+
+        if (coal && modelVariables.coal.prediction.length > 1) {
+            n = Math.max(n, utils.last(modelVariables.coal.prediction));
+        }
+
+        if (gas && modelVariables.natural_gas.prediction.length > 1) {
+            n = Math.max(n, utils.last(modelVariables.natural_gas.prediction));
+        }
+
+        if (renewables && modelVariables.renewables.prediction.length > 1) {
+            n = Math.max(n, utils.last(modelVariables.renewables.prediction));
+        }
+
+        if (demand && modelVariables.demand.prediction.length > 1) {
+            n = Math.max(n, utils.last(modelVariables.demand.prediction));
+        }
+
+        max_ticks = Math.ceil((n)/50)*50;
+    }
     
-    if (modelVariables.oil.prediction.length > 1) {
-        n = Math.max(n, utils.last(modelVariables.oil.prediction));
-    }
-    if (modelVariables.coal.prediction.length > 1) {
-        n = Math.max(n, utils.last(modelVariables.coal.prediction));
-    }
-    if (modelVariables.natural_gas.prediction.length > 1) {
-        n = Math.max(n, utils.last(modelVariables.natural_gas.prediction));
-    }
-    if (modelVariables.renewables.prediction.length > 1) {
-        n = Math.max(n, utils.last(modelVariables.renewables.prediction));
-    }
-    if (modelVariables.demand.prediction.length > 1) {
-        n = Math.max(n, utils.last(modelVariables.demand.prediction));
-    }
-    
-    const max_ticks = Math.ceil((n)/50)*50;
-    console.log(n);
     const options = {
         scales: {
             yAxes: [{
@@ -361,13 +367,13 @@ const generateFlatConsumtionChart = (renewables_rate_change) => {
     modelVariables.oil.prediction = utils.zeroFillArrayBack(modelVariables.oil.prediction, longestLen+ 10);
     modelVariables.coal.prediction = utils.zeroFillArrayBack(modelVariables.coal.prediction, longestLen + 10);
     modelVariables.natural_gas.prediction = utils.zeroFillArrayBack(modelVariables.natural_gas.prediction, longestLen + 10);
-
+ 
     // increase steadily renewables and nuclear
     modelVariables.renewables.prediction =
         energy_calc.steadyIncreaseConsumption(
             utils.last(modelVariables.renewables.history),
             modelVariables.renewables.rateOfIncrease,
-            modelVariables.endYear - modelVariables.startYear + modelVariables.historicalYears);
+            modelVariables.endYear - (modelVariables.startYear + modelVariables.historicalYears));
 
     modelVariables.demand.prediction = energy_calc.sumArrays(
         modelVariables.oil.prediction, 
@@ -375,7 +381,7 @@ const generateFlatConsumtionChart = (renewables_rate_change) => {
         modelVariables.natural_gas.prediction,
         modelVariables.renewables.prediction);
 
-    generateEnergyChart(flatConsumptionChart, true, true, true, true, false);
+    generateEnergyChart(flatConsumptionChart, true, true, true, true, false, 500);
 };
 
 generateFlatConsumtionChart(renewables_rate_input.value * 0.01);
