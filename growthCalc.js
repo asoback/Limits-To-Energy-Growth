@@ -170,25 +170,30 @@ export const energy_calc = {
         const a = [];
         let last_amount = starting_consumption_amount;
         let last_remaining = remaining_amount;
+        let sumUsed = 0;
 
         // Grow
-        while (last_remaining >= 10 && last_amount < peak_comsunption_amount * 0.95 && look_ahead > 0) {
+        while (last_remaining >= 10 && last_amount < peak_consumption_amount * 0.95 && look_ahead > 0) {
             last_amount += last_amount * starting_growth_rate * (1 - (last_amount - starting_consumption_amount) / (peak_consumption_amount - starting_consumption_amount)); 
             a.push(last_amount);
+            sumUsed += last_amount;
             last_remaining = last_remaining - last_amount;
             --look_ahead;
         }
 
         // Decline
-        let last_rate = 0;
+        let last_rate = 0.001;
+        const max_rate = 0.025;
         while (last_remaining >= 10 && look_ahead > 0) {
-            last_rate += last_remaining/remaining_amount;
-            last_amount -= last_amount * last_rate;
+            // TODO: Fix this
+            last_rate += max_rate * (1 - (remaining_amount - sumUsed)/remaining_amount);
+            last_amount -= Math.max(Math.round(last_amount * last_rate), 0);
             a.push(last_amount);
+            sumUsed += last_amount;
             last_remaining = last_remaining - last_amount;
             --look_ahead;
         } 
-
+        console.log(last_remaining);
         // Drip
         while (last_remaining > 0 && look_ahead > 0) {
             last_rate -= last_rate * last_remaining/remaining_amount;

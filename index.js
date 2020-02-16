@@ -397,27 +397,18 @@ renewables_rate_input.onchange = () => {
 //
 
 const generateMyPredictionChart = () => {
-    const renewables_rate_change = renewables_rate_2.value * 0.01;
-    const demand_rate_change = demand_rate.value * 0.01;
+    modelVariables.renewables.rateOfIncrease = renewables_rate_2.value * 0.01;
+    modelVariables.demand.rateOfIncrease = demand_rate.value * 0.01;
 
     const lookAhead = 150;
     modelVariables.endYear =  modelVariables.startYear + modelVariables.historicalYears + lookAhead;
-
-
-// floorIndex: 0,
-//         peakIndex: 0,
-//         yearsRemaining: 0,
-//         reserveValue: 0,
-//         history: [],
-//         prediction: [],
-//         rateOfIncrease: 0
 
     if (modelVariables.oil.peakIndex > 0) {
         modelVariables.oil.peakIndex = utils.last(modelVariables.oil.history) * 1.3;
     }
 
     modelVariables.oil.prediction  = energy_calc.peakThenDecline(utils.last(modelVariables.oil.history),
-        modelVariables.oil.yearsRemaining,
+        modelVariables.oil.reserveValue,
         modelVariables.oil.peakIndex,
         modelVariables.oil.rateOfIncrease, lookAhead);
 
@@ -426,7 +417,7 @@ const generateMyPredictionChart = () => {
     }
 
     modelVariables.coal.prediction = energy_calc.peakThenDecline(utils.last(modelVariables.coal.history),
-        modelVariables.coal.yearsRemaining,
+        modelVariables.coal.reserveValue,
         modelVariables.coal.peakIndex,
         modelVariables.coal.rateOfIncrease, lookAhead);
     
@@ -435,7 +426,7 @@ const generateMyPredictionChart = () => {
     }
 
     modelVariables.natural_gas.prediction = energy_calc.peakThenDecline(utils.last(modelVariables.natural_gas.history),
-        modelVariables.natural_gas.yearsRemaining,
+        modelVariables.natural_gas.reserveValue,
         modelVariables.natural_gas.peakIndex,
         modelVariables.natural_gas.rateOfIncrease, lookAhead);
 
@@ -456,11 +447,6 @@ const generateMyPredictionChart = () => {
     
 
     generateEnergyChart(myPredictionChart, true, true, true, true, true, 500);
-
-    // const totalSupply = [];
-    // for (let i = 0; i < fullYearsArray.length; i++) {
-    //     totalSupply.push(Math.round(decliningConsumptionCoal[i] + decliningConsumptionGas[i] + decliningConsumptionOil[i] + renewables[i]));
-    // }
 };
 
 generateMyPredictionChart();
