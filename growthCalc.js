@@ -163,6 +163,51 @@ export const energy_calc = {
 
         return returnArray;
     },
+
+
+        // // My Prediction
+    peakThenDecline: function(starting_consumption_amount, remaining_amount, peak_consumption_amount, starting_growth_rate, look_ahead) {
+        const a = [];
+        let last_amount = starting_consumption_amount;
+        let last_remaining = remaining_amount;
+
+        // Grow
+        while (last_remaining >= 10 && last_amount < peak_comsunption_amount * 0.95 && look_ahead > 0) {
+            last_amount += last_amount * starting_growth_rate * (1 - (last_amount - starting_consumption_amount) / (peak_consumption_amount - starting_consumption_amount)); 
+            a.push(last_amount);
+            last_remaining = last_remaining - last_amount;
+            --look_ahead;
+        }
+
+        // Decline
+        let last_rate = 0;
+        while (last_remaining >= 10 && look_ahead > 0) {
+            last_rate += last_remaining/remaining_amount;
+            last_amount -= last_amount * last_rate;
+            a.push(last_amount);
+            last_remaining = last_remaining - last_amount;
+            --look_ahead;
+        } 
+
+        // Drip
+        while (last_remaining > 0 && look_ahead > 0) {
+            last_rate -= last_rate * last_remaining/remaining_amount;
+            last_amount += last_amount * last_rate;
+            a.push(last_amount);
+            last_remaining = last_remaining - last_amount;
+            --look_ahead;
+        }
+
+        // zero fill
+        while (look_ahead > 0){
+            a.push(0);
+            --look_ahead;
+        }
+
+        return a;
+    },
+
+
     //
     // Per Capita Energy Consumption
     //
@@ -222,36 +267,6 @@ export const energy_calc = {
 
 
 
-    // const convertMillionBarrelsDayToQBTU = (data) => {
-    //     const a = [];
-    //     for (let i = 0; i < data.length; i++) {
-    //         // 1 million barrel oil = .00555136 quad btu
-    //         a.push(Math.round(data[i] * 365 * 0.00000555));
-    //     }
-    //     return a;
-    // };
-
-    // const convertMillionShortTonsToQBTU = (data) => {
-    //     const a = [];
-    //     for (let i = 0; i < data.length; i++) {
-    //         //TODO check if ton is same as short ton.
-    //         // 1 million ton coal = .02778 quad btu
-    //         a.push(Math.round(data[i] * 0.00002778));
-    //     }
-    //     return a;
-    // };
-
-    // const convertBcfToQBTU = (data) => {
-    //     const a = [];
-    //     for (let i = 0; i < data.length; i++) {
-    //         // Billion cubicfeet gas = .001027 quad btu
-    //         a.push(Math.round(data[i] * 0.001027));
-    //     }
-    //     return a;
-    // };
-
-
-
     // const getData = (start_year, end_year, dataset) => {
     //     const start_idx = dataset.years.indexOf(start_year);
     //     const end_idx = dataset.years.indexOf(end_year);
@@ -275,23 +290,6 @@ export const energy_calc = {
     // };
 
 
-    // // 1 barrel of oil is approx 5.7 Million BTUs
-    // const convert_barrels_oil_to_quad_btu = (barrels) => {
-    //     // The units of barrels are in billions, the return value is in quadrillions
-    //     // A million billion is a quadrillion.
-    //     return (barrels * 5.8);
-    // };
-
-    // const convert_natural_gas_to_btu = (cubic_feet) => {
-    //     // 1015 btus in a cubic foot of natural gas
-    //     // data is in a trillion cubic feet
-    //     // return value is in Quadrillion Btus
-    //     return cubic_feet * 1.015;
-    // };
-
-    // const convert_coal_to_btu = (short_tons) => {
-    //     return (20.15 * Math.pow(10, 6) *  Math.pow(10, 6) * short_tons) / Math.pow(10, 15); 
-    // };
 
     // const yearsPlusMoreYears = (yearsArray, extraYears) => {
     //     let newYearsArray = yearsArray;

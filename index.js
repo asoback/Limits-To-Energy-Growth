@@ -392,138 +392,94 @@ renewables_rate_input.onchange = () => {
 };
 
 
+//
+// Base Prediction
+//
+
+const generateMyPredictionChart = () => {
+    const renewables_rate_change = renewables_rate_2.value * 0.01;
+    const demand_rate_change = demand_rate.value * 0.01;
+
+    const lookAhead = 150;
+    modelVariables.endYear =  modelVariables.startYear + modelVariables.historicalYears + lookAhead;
+
+
+// floorIndex: 0,
+//         peakIndex: 0,
+//         yearsRemaining: 0,
+//         reserveValue: 0,
+//         history: [],
+//         prediction: [],
+//         rateOfIncrease: 0
+
+    if (modelVariables.oil.peakIndex > 0) {
+        modelVariables.oil.peakIndex = utils.last(modelVariables.oil.history) * 1.3;
+    }
+
+    modelVariables.oil.prediction  = energy_calc.peakThenDecline(utils.last(modelVariables.oil.history),
+        modelVariables.oil.yearsRemaining,
+        modelVariables.oil.peakIndex,
+        modelVariables.oil.rateOfIncrease, lookAhead);
+
+    if (modelVariables.coal.peakIndex > 0) {
+        modelVariables.coal.peakIndex = utils.last(modelVariables.coal.history) * 1.3;
+    }
+
+    modelVariables.coal.prediction = energy_calc.peakThenDecline(utils.last(modelVariables.coal.history),
+        modelVariables.coal.yearsRemaining,
+        modelVariables.coal.peakIndex,
+        modelVariables.coal.rateOfIncrease, lookAhead);
+    
+    if (modelVariables.natural_gas.peakIndex > 0) {
+        modelVariables.natural_gas.peakIndex = utils.last(modelVariables.natural_gas.history) * 1.3;
+    }
+
+    modelVariables.natural_gas.prediction = energy_calc.peakThenDecline(utils.last(modelVariables.natural_gas.history),
+        modelVariables.natural_gas.yearsRemaining,
+        modelVariables.natural_gas.peakIndex,
+        modelVariables.natural_gas.rateOfIncrease, lookAhead);
+
+    // increase steadily renewables and nuclear
+
+    modelVariables.renewables.prediction =
+        energy_calc.steadyIncreaseConsumption(
+            utils.last(modelVariables.renewables.history),
+            modelVariables.renewables.rateOfIncrease,
+            modelVariables.endYear - (modelVariables.startYear + modelVariables.historicalYears));
+
+
+    modelVariables.demand.prediction =
+        energy_calc.steadyIncreaseConsumption(
+            utils.last(modelVariables.demand.history),
+            modelVariables.demand.rateOfIncrease,
+            modelVariables.endYear - (modelVariables.startYear + modelVariables.historicalYears));
+    
+
+    generateEnergyChart(myPredictionChart, true, true, true, true, true, 500);
+
+    // const totalSupply = [];
+    // for (let i = 0; i < fullYearsArray.length; i++) {
+    //     totalSupply.push(Math.round(decliningConsumptionCoal[i] + decliningConsumptionGas[i] + decliningConsumptionOil[i] + renewables[i]));
+    // }
+};
+
+generateMyPredictionChart();
+
+demand_rate_input.onchange = () => {
+    generateMyPredictionChart();
+};
+
+renewables_rate_input_2.onchange = () => {
+    generateMyPredictionChart();
+};
+
+
 
 
 /*
 
 
-const generateMyPredictionChart = (renewables_rate_change) => {
-    // Divide up data by type
-    let years = array_of_years_start_to_end(1980, 2016);
-    let coal = getData(1980, 2016, globalCoalConsumption);
-    let oil = getData(1980, 2016, globalOilConsumption);
-    let natural_gas = getData(1980, 2016, globalNaturalGasConsumption);
-    let renewables =  getData(1980, 2016, globalNuclearAndRenewableConsumption);
-    renewables = roundArray(renewables);
-    // Add data at declining rate or less until 0d
-    // oil
-    const btuRemainingOil = convert_barrels_oil_to_quad_btu(non_renewable_reserves.oil.proven);
-    const lastOilRate = oil[oil.length - 1];
-    let decliningConsumptionOil = oil.concat(getDecliningConsumptionArray(btuRemainingOil, lastOilRate, renewables_rate_input.value * 0.01));
-    let longestLen = decliningConsumptionOil.length;
 
-    // coal
-    const btuRemainingCoal = convert_coal_to_btu(non_renewable_reserves.coal.proven);
-    const lastCoalRate = coal[coal.length - 1];
-    let decliningConsumptionCoal = coal.concat(getDecliningConsumptionArray(btuRemainingCoal, lastCoalRate, renewables_rate_input.value * 0.01));
-    longestLen = Math.max(longestLen, decliningConsumptionCoal.length);
-    // gas
-    const btuRemainingNaturalGas = convert_natural_gas_to_btu(non_renewable_reserves.natural_gas.proven);
-    const lastNaturalGasRate = natural_gas[natural_gas.length - 1];
-    let decliningConsumptionGas = natural_gas.concat(getDecliningConsumptionArray(btuRemainingNaturalGas, lastNaturalGasRate, renewables_rate_input.value * 0.01));
-    longestLen = Math.max(longestLen, decliningConsumptionGas.length);
-
-    // Additional chart space
-    const extraYears = 10;
-    longestLen = longestLen + extraYears;
-
-    // zero fill
-    decliningConsumptionOil = zeroFillArrayBack(decliningConsumptionOil, longestLen);
-    decliningConsumptionCoal = zeroFillArrayBack(decliningConsumptionCoal, longestLen);
-    decliningConsumptionGas = zeroFillArrayBack(decliningConsumptionGas, longestLen);
-    // increase steadily renewables and nuclear
-    const primary_energy =  addWithNonRenewables(getData(1980, 2016, globalPrimaryConsumption), renewables);
-    renewables = expandDataWithSteadyIncreaseConsumption(renewables, longestLen - years.length, renewables_rate_change);
-    // get years
-    const fullYearsArray = yearsPlusMoreYears(years, longestLen - years.length);
-
-
-    // Calculate Demand
-    
-    const demand = expandDataWithSteadyIncreaseConsumption(
-        primary_energy,
-        years.length - 10,
-        demand_rate_input.value * 0.01
-    );
-
-    const n = Math.max(renewables[renewables.length -1], demand[demand.length - 1]);
-    const max_ticks = Math.ceil((n)/100)*100;
-    
-    // chart
-    const data = {};
-    data.labels = fullYearsArray;
-    data.datasets = [
-        {
-            label: "Coal Consumption",
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            borderColor: 'rgb(0, 0, 0)',
-            data: decliningConsumptionCoal
-        },
-        {
-            label: "Natural Gas Consumption",
-            backgroundColor: 'rgba(148, 118, 0, 0.5)',
-            borderColor: 'rgb(148, 118, 0)',
-            data: decliningConsumptionGas
-        },
-        {
-            label: "Oil Consumption",
-            backgroundColor: 'rgba(82, 50, 29, 0.5)',
-            borderColor: 'rgb(82, 50, 29)',
-            data: decliningConsumptionOil
-        },
-        {
-            label: "Renewables Consumption",
-            backgroundColor: 'rgba(0, 161, 5, 0.5)',
-            borderColor: 'rgb(0, 161, 5)',
-            data: renewables
-        },
-        {
-            label: "Demand",
-            yAxisID: 'demand_line',
-            backgroundColor: 'rgba(255, 120, 250, 0.2)',
-            borderColor: 'rgb(255, 120, 250)',
-            data: demand
-        }
-    ];
-    const options = {
-        scales: {
-            yAxes: [{
-                stacked: true,
-                ticks: {
-                    beginAtZero: true,
-                    min: 0,
-                    max: max_ticks
-                },
-            },{
-                id: 'demand_line',
-                stacked: false,
-                display: false, // ticks on y axis
-                ticks: {
-                    beginAtZero: true,
-                    min: 0,
-                    max: max_ticks
-                },
-            }]
-        }
-    };
-    generateChart(myPredictionChart, data, 'line', options);
-
-    const totalSupply = [];
-    for (let i = 0; i < fullYearsArray.length; i++) {
-        totalSupply.push(Math.round(decliningConsumptionCoal[i] + decliningConsumptionGas[i] + decliningConsumptionOil[i] + renewables[i]));
-    }
-    return totalSupply;
-};
-
-let totalSupply = generateMyPredictionChart(renewables_rate_input_2.value * 0.01);
-
-demand_rate_input.onchange = () => {
-    totalSupply = generateMyPredictionChart(renewables_rate_input_2.value * 0.01);
-};
-
-renewables_rate_input_2.onchange = () => {
-    totalSupply = generateMyPredictionChart(renewables_rate_input_2.value * 0.01);
-};
 
 
 
