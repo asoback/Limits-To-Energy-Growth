@@ -23,13 +23,19 @@ body {
   max-width: 60%;
 }
 
+.grid-column-center {
+  padding-left: 5%;
+  padding-right: 5%;
+}
+
 .grid-column-left {
   width: 20%;
+  background-color: #8f2468;
 }
 
 .grid-column-right {
  width: 20%;
- background-color: purple;
+ background-color: #8f2468;
 }
 
  
