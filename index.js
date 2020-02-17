@@ -461,6 +461,30 @@ renewables_rate_input_2.onchange = () => {
 
 
 
+// Compount interest
+// Bind Elements
+    const compoundStartPop = document.getElementById("compoundStartPop");
+    const compoundYear = document.getElementById("compoundYear");
+    const compoundYearsToGrow = document.getElementById("compoundYearsToGrow");
+    const compoundRate = document.getElementById("compoundRate");
+    const compountSubmit = document.getElementById("compoundSubmit");
+    const compoundOutput = document.getElementById("compoundOutput");
+    const compoundDescription = document.getElementById("compoundDescription");
+
+
+
+compoundSubmit.onclick = () => {
+    const final_pop = popuation_calc.simple_interest_function(
+            compoundStartPop.value,
+            compoundYear.value,
+            compoundYearsToGrow.value,
+            compoundRate.value
+    );
+
+    compoundOutput.textContent = utils.number_with_commas(final_pop);
+    compoundDescription.textContent = 'Or roughly ' + utils.int_to_string(final_pop);
+};
+
 
 /*
 
@@ -514,29 +538,7 @@ pop_num_years_input.onchange = recalculate_pop_predictions;
 pop_carrying_cap_input.onchange = recalculate_pop_predictions;
 
 
-// Compount interest
-// Bind Elements
-    const compoundStartPop = document.getElementById("compoundStartPop");
-    const compoundYear = document.getElementById("compoundYear");
-    const compoundYearsToGrow = document.getElementById("compoundYearsToGrow");
-    const compoundRate = document.getElementById("compoundRate");
-    const compountSubmit = document.getElementById("compoundSubmit");
-    const compoundOutput = document.getElementById("compoundOutput");
-    const compoundDescription = document.getElementById("compoundDescription");
 
-
-
-compoundSubmit.onclick = () => {
-    const final_pop = simple_interest_function(
-            compoundStartPop.value,
-            compoundYear.value,
-            compoundYearsToGrow.value,
-            compoundRate.value
-    );
-
-    compoundOutput.textContent = number_with_commas(final_pop);
-    compoundDescription.textContent = 'Or roughly ' + int_to_string(final_pop);
-};
 
 
 

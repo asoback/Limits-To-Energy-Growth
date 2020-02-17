@@ -35,17 +35,17 @@ export const utils = {
     },
 
     int_to_string: function(num) {
-        if (num > QUAD) {
-            const reduce = Math.round(num/QUAD);
+        if (num > utils.QUAD()) {
+            const reduce = Math.round(num/utils.QUAD());
             return reduce + ' Quadrillion';
-        } else if (num > TRILLION) {
-            const reduce = Math.round(num/TRILLION);
+        } else if (num > utils.TRILLION()) {
+            const reduce = Math.round(num/utils.TRILLION());
             return reduce + ' Trillion';
-        } else if (num > BILLION) {
-            const reduce = Math.round(num/BILLION);
+        } else if (num > utils.BILLION()) {
+            const reduce = Math.round(num/utils.BILLION());
             return reduce + ' Billion';
         } else {
-            const reduce = Math.round(num/MILLION);
+            const reduce = Math.round(num/utils.MILLION());
             return reduce + ' Million';
         }
     },
