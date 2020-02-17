@@ -193,7 +193,7 @@ export const energy_calc = {
             last_remaining = last_remaining - last_amount;
             --look_ahead;
         } 
-        console.log(last_remaining);
+
         // Drip
         while (last_remaining > 0 && look_ahead > 0) {
             last_rate -= last_rate * last_remaining/remaining_amount;

@@ -431,7 +431,6 @@ const generateMyPredictionChart = () => {
         modelVariables.natural_gas.rateOfIncrease, lookAhead);
 
     // increase steadily renewables and nuclear
-
     modelVariables.renewables.prediction =
         energy_calc.steadyIncreaseConsumption(
             utils.last(modelVariables.renewables.history),
@@ -486,106 +485,83 @@ compoundSubmit.onclick = () => {
 };
 
 
+
+
+
+
+
+
+
+
+//
+// Demand by pop
+//
+//
+
+const perCapDemand = document.getElementById("per_cap_demand");
+
+const generateDemandPerCapitaChart = () => {
+    let peakDemand = 
+        (utils.last(modelVariables.demand.history)/utils.last(modelVariables.pop.history) *
+        perCapDemand.value) *
+        (modelVariables.pop.carryingCapacityBil);
+
+    const lookAhead = 150;
+
+    modelVariables.demand.prediction = popuation_calc.modeling_population_growth(
+            lookAhead,
+            utils.last(modelVariables.demand.history),
+            peakDemand,
+            modelVariables.demand.rateOfIncrease);
+
+
+    modelVariables.endYear =  modelVariables.startYear + modelVariables.historicalYears + lookAhead;
+
+    if (modelVariables.oil.peakIndex > 0) {
+        modelVariables.oil.peakIndex = utils.last(modelVariables.oil.history) * 1.3;
+    }
+
+    modelVariables.oil.prediction  = energy_calc.peakThenDecline(utils.last(modelVariables.oil.history),
+        modelVariables.oil.reserveValue,
+        modelVariables.oil.peakIndex,
+        modelVariables.oil.rateOfIncrease, lookAhead);
+
+    if (modelVariables.coal.peakIndex > 0) {
+        modelVariables.coal.peakIndex = utils.last(modelVariables.coal.history) * 1.3;
+    }
+
+    modelVariables.coal.prediction = energy_calc.peakThenDecline(utils.last(modelVariables.coal.history),
+        modelVariables.coal.reserveValue,
+        modelVariables.coal.peakIndex,
+        modelVariables.coal.rateOfIncrease, lookAhead);
+    
+    if (modelVariables.natural_gas.peakIndex > 0) {
+        modelVariables.natural_gas.peakIndex = utils.last(modelVariables.natural_gas.history) * 1.3;
+    }
+
+    modelVariables.natural_gas.prediction = energy_calc.peakThenDecline(utils.last(modelVariables.natural_gas.history),
+        modelVariables.natural_gas.reserveValue,
+        modelVariables.natural_gas.peakIndex,
+        modelVariables.natural_gas.rateOfIncrease, lookAhead);
+
+    modelVariables.renewables.prediction =
+        energy_calc.steadyIncreaseConsumption(
+            utils.last(modelVariables.renewables.history),
+            modelVariables.renewables.rateOfIncrease,
+            modelVariables.endYear - (modelVariables.startYear + modelVariables.historicalYears));
+
+    generateEnergyChart(peakDemandChart, true, true, true, true, true, 400);
+};
+
+generateDemandPerCapitaChart();
+
+perCapDemand.onchange = () => {
+    generateDemandPerCapitaChart();
+};
+
+
 /*
 
-
-
-
-
-
-
-// Generate Chart
-const generatePopulationChart = (num_years, carrying_cap) => {
-    const data = {};
-    // make years
-    data.labels = get_years_array(num_years, 1960);
-    
-    // Calculate predicted populations
-    const less_years = 2018 - 1960; // No predictions for data we'll see.
-    const starting_pop = 7594270356; // Latest data
-    // Latest year growth rate
-    const starting_rate =  calculate_avg_yearly_pop_growth('2017');
-    // Actual population data
-    const predicted_pop_data = modeling_population_growth(num_years - less_years, starting_pop, carrying_cap, starting_rate * 0.01);
-    const pop_data = population_data.world_population_total;
-    const whole_pop_data = pop_data.concat(predicted_pop_data);
-    data.datasets = [
-        {
-            label: 'Real Population',
-            borderColor: 'rgb(99, 255, 132)',
-            data: population_data.world_population_total
-        },
-        {
-            label: 'Projected Population',
-            borderColor: 'rgb(255, 99, 132)',
-            data: whole_pop_data
-        }
-    ];
-    generateChart(PopulationChart, data);
-};
-
-// Initial Chart (10 Billion prediction)
-generatePopulationChart(250, 10000000000);
-
-// Bind buttons
-const recalculate_pop_predictions = () => {
-    const num_years = pop_num_years_input.value;
-    const carrying_cap = pop_carrying_cap_input.value * 1000000000;
-    generatePopulationChart(num_years, carrying_cap);
-};
-
-pop_num_years_input.onchange = recalculate_pop_predictions;
-pop_carrying_cap_input.onchange = recalculate_pop_predictions;
-
-
-
-
-
-
-const generateDemandPerCapitaChart = (perCapita, populationMax, totalSupplyArray, maxRate, numYears) => {
-    const peakDemand = perCapita * populationMax;
-    const mostRecentYear = last(globalPrimaryConsumption.years);
-    const mostRecentDemand = Math.round(last(globalPrimaryConsumption.data) + last(globalNuclearAndRenewableConsumption.data));
-    //Generate yearly rate that caps out at some max
-        // Look at desired demand per person * pop
-    // Reuse the same population fn?
-
-    const futureDemand = modeling_population_growth(totalSupplyArray.length - 36, mostRecentDemand, peakDemand/QUAD, maxRate);
-    let demand = [];
-    for ( let i = 0; i < 36; i++){
-        demand.push(totalSupplyArray[i]);
-    }
-    demand = demand.concat(futureDemand);
-
-    // Compare to the possible supply per year
-    const years = yearsPlusMoreYears(globalPrimaryConsumption.years, numYears); 
-   
-    // Generate chart
-    const data = {};
-    // make years
-    data.labels = get_years_array(numYears, 1980);
-    data.datasets = [
-        {
-            label: 'Supply',
-            borderColor: 'rgb(99, 255, 132)',
-            data: totalSupplyArray
-        },
-        {
-            label: 'Demand',
-            borderColor: 'rgb(255, 99, 132)',
-            data: demand
-        }
-    ];
-    generateChart(peakDemandChart, data);
-};
-
-//TODO make these inputs
-const maxRate = 0.02;
-const perCapita = 99* MILLION;
-const populationMax =pop_carrying_cap_input.value * 1000000000;
-const numYears = totalSupply.length;
-
-generateDemandPerCapitaChart(perCapita, populationMax, totalSupply, maxRate, numYears);
 
 
 //
