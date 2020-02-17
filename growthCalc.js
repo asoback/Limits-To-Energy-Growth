@@ -52,9 +52,9 @@ export const popuation_calc = {
     },
 
     simple_interest_function: function(startPop,
-        startYear,
-        yearsToGrow,
-        compoundRate) {
+            startYear,
+            yearsToGrow,
+            compoundRate) {
         const power = Number(yearsToGrow);
         const fullCompoundRate = 1 + Number(compoundRate);
         const rateToPower = Math.pow(fullCompoundRate, power);

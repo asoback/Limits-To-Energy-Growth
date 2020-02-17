@@ -560,59 +560,83 @@ perCapDemand.onchange = () => {
 };
 
 
-/*
-
-
-
 //
 // Undiscovered Resources
 //
-
-const undiscoveredPlusDiscovered = (known, extraPercent) => {
-    return known * (1 + extraPercent);
-};
-
-const btuRemainingOil = convert_barrels_oil_to_quad_btu(non_renewable_reserves.oil.proven);
-const btuRemainingCoal = convert_coal_to_btu(non_renewable_reserves.coal.proven);
-const btuRemainingNaturalGas = convert_natural_gas_to_btu(non_renewable_reserves.natural_gas.proven);
 
 const undiscoveredChart = document.getElementById('undiscoveredChart');
 const undiscoveredResources = document.getElementById('undiscovered');
 const yearsUntilTurnAround = document.getElementById('yearsUntilTurnAround');
 
-const growthAndDeclineCurves = (remainingBTU, startingRate, startingGrowthRate, yearsToNegative) => {
-    const valueArray = [];
-    let lastSeen = startingRate;
-    let remainingResouce = remainingBTU;
-    let yearsPast = 0;
-    // Declining growth curve
-    while (remainingResource > 0 && yearsPast < yearsToNegative) {
-        yearsPast++;
-        lastSeen = lastSeen + lastSeen * (startingGrowthRate * ((yearsToNegative - yearsPast)/yearsToNegative));
-        valueArray.push(lastSeen);
-    }
-    // Declining consumption curve
-    while (remainingResource > 0) {
+const generateUndiscoveredChart = () => {
+    const undiscoveredPercent = 1 + (undiscoveredResources.value / 100);
 
+    let peakDemand = 
+        (utils.last(modelVariables.demand.history)/utils.last(modelVariables.pop.history) *
+        perCapDemand.value) *
+        (modelVariables.pop.carryingCapacityBil);
+
+    const lookAhead = 150;
+
+    modelVariables.demand.prediction = popuation_calc.modeling_population_growth(
+            lookAhead,
+            utils.last(modelVariables.demand.history),
+            peakDemand,
+            modelVariables.demand.rateOfIncrease);
+
+    modelVariables.endYear =  modelVariables.startYear + modelVariables.historicalYears + lookAhead;
+
+    const getPeakIndex = (elem) => {
+        return popuation_calc.simple_interest_function(
+            utils.last(modelVariables[elem].history),
+            -1,
+            yearsUntilTurnAround.value,
+            modelVariables[elem].rateOfIncrease
+        );
+    };
+
+    if (modelVariables.oil.peakIndex > 0) {
+        modelVariables.oil.peakIndex = getPeakIndex("oil");
     }
 
+    modelVariables.oil.prediction  = energy_calc.peakThenDecline(utils.last(modelVariables.oil.history),
+        modelVariables.oil.reserveValue * undiscoveredPercent,
+        modelVariables.oil.peakIndex,
+        modelVariables.oil.rateOfIncrease, lookAhead);
+
+    if (modelVariables.coal.peakIndex > 0) {
+        modelVariables.coal.peakIndex = getPeakIndex("coal");
+    }
+
+    modelVariables.coal.prediction = energy_calc.peakThenDecline(utils.last(modelVariables.coal.history),
+        modelVariables.coal.reserveValue * undiscoveredPercent,
+        modelVariables.coal.peakIndex,
+        modelVariables.coal.rateOfIncrease, lookAhead);
+    
+    if (modelVariables.natural_gas.peakIndex > 0) {
+        modelVariables.natural_gas.peakIndex = getPeakIndex("natural_gas");
+    }
+
+    modelVariables.natural_gas.prediction = energy_calc.peakThenDecline(utils.last(modelVariables.natural_gas.history),
+        modelVariables.natural_gas.reserveValue * undiscoveredPercent,
+        modelVariables.natural_gas.peakIndex,
+        modelVariables.natural_gas.rateOfIncrease, lookAhead);
+
+    modelVariables.renewables.prediction =
+        energy_calc.steadyIncreaseConsumption(
+            utils.last(modelVariables.renewables.history),
+            modelVariables.renewables.rateOfIncrease,
+            modelVariables.endYear - (modelVariables.startYear + modelVariables.historicalYears));
+
+    generateEnergyChart(undiscoveredChart, true, true, true, true, true, 400);
 };
 
-const generateUndiscoveredChart = (perCapita, populationMax, maxRate) => {
-    const undiscoveredPercent = (undiscoveredResources.value / 100);
-    const yearsTillNegativeGrowth = yearsUntilTurnAround.value;
+generateUndiscoveredChart();
 
-    const predictedBtuOil = undiscoveredPlusDiscovered(btuRemainingOil, undiscoveredPercent);
-    const predictedBtuCoal = undiscoveredPlusDiscovered(btuRemainingCoal, undiscoveredPercent);
-    const predictedBtuGas = undiscoveredPlusDiscovered(btuRemainingNaturalGas, undiscoveredPercent);
-
-
-
+undiscoveredResources.onchange = () => {
+    generateUndiscoveredChart();
 };
 
-
-
-generateUndiscoveredChart(perCapita, populationMax, totalSupply, maxRate);
-
-
-*/
+yearsUntilTurnAround.onchange = () => {
+    generateUndiscoveredChart();
+};
