@@ -15,40 +15,56 @@
 	<div class="grid-column grid-column-center">
 		<!-- Title, brief description, historical chart -->
 		<div>
-			<h1>Limits to Energy Growth</h1>
-			<h6>Title in progress while I work on charts</h6>
-			<p>Here's how much oil the US Government <sup><a href="">[1]</a></sup></p> says that the whole world has used since the 80s.
+			<h1>One More Reason Why We Need A Green New Deal</h1>
+			<h4>(It's got nothing to do with climate change)</h4>
+			<cite>
+				<p>Author: Andrew Soback</p>
+				<p>5 minute read</p>
+			</cite>
+			
+			<p>Here's how much oil the US Government <sup><a href="">[1]</a></sup>
+				says that the whole world has used since the 80s.
+				The data is indexed, so that 100 is the total amount of energy consumed by all of
+				humanity in the year 1980. 200 would be twice that amount of energy, like we see
+				around 2014. Persumable, if the amount of energy consumed doubles every 34 years,
+				then it would have been gotten a 50 in 1946, and would reach 400 by 2050.
+			</p>
 			<div>
 				<canvas class="chart" id="historicalChart"></canvas>
 			</div>
+			<p>Other sources to check for this would be the BP statistical review of world energy 
+				data use.</p>
 			<hr>
 		</div>
 		<!-- what we have left chart -->
 		<div>
-			<p>When scientists<sup><a href="">[1]</a></sup>, the government<sup><a href="">[2]</a></sup>, or others say things like </p>
-			<quote>At current rates of use, we have about 52 years of oil left</quote>
-			<p>This is what that looks like, graphed</p>
+			<p>When scientists<sup><a href="">[1]</a></sup>, the government<sup><a href="">[2]</a></sup>,
+				or others say things like "at current rates of use, we have about 52 years of oil left"
+				Or how we at current rates of use, coal would last another 130 year, and over 50 for
+				natural gas, this is what that looks like as a graph. Of course, the supply of
+				renewables is assumed to grow. This isn't exactly a likely scenario.</p>
 			<div >
 				<canvas class="chart" id="flatConsumptionChart"></canvas>
 			</div>
 			<div>
 				<label for="renewables_rate">Rate of growth for renewables and nuclear</label>
 				<input id="renewables_rate" type="number" value="2" max="5" min="0" step=".1">%
-				<p>2% is what is generally expected <sup>[citation needed]</sup>.</p>
-				<p>Not exactly likely scenario though is it?</p>
+				<p>1.4% is what is generally expected <sup>[citation needed]</sup>.</p>
 			</div>
 			<hr>
 		</div>
 
 		<!--  Here's what it might look like with prediction -->
 		<div>
-			<p>Making a few assumptions about the future, I can think about what the new few hundred years might look like</p>
-			<p>The growth of renewables and nuclear energy remains the same,
-				while the growth of non-renewables declines.
-			</p>
-			<p>Here is where we start to see a real problem: The demand line, in pink.
-				The further it gets from the total supply, likely the more it energy of any
-				type will cost.
+			<p>We can make a few assumptions about the future, and improve this model.
+			<ul>
+				<li>Renewables continue to grow</li>
+				<li>Demand continues to grow (The pink line)</li>
+				<li>Non-renewables will grow for some time, peak, then decline</li>
+			</ul>	
+				Here there is a problem. Significantly more demand than supply. What will this mean 
+				for the cost of energy, the availability of energy around the globe, infrastructure 
+				where we live?
 			</p>
 
 			<div >
