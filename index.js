@@ -640,3 +640,109 @@ undiscoveredResources.onchange = () => {
 yearsUntilTurnAround.onchange = () => {
     generateUndiscoveredChart();
 };
+
+
+//
+// Full Chart
+//
+
+const fullChart = document.getElementById('fullChart');
+const fundiscoveredResources = document.getElementById('undiscoveredFinal');
+const fyearsUntilTurnAround = document.getElementById('yearsUntilTurnAroundFinal');
+const fperCapDemand = document.getElementById("per_cap_demandFinal");
+const fCarryingCap = document.getElementById("max_popFinal");
+const fdemand_rate = document.getElementById("demand_rate_final");
+const frenewables_rate = document.getElementById("renewables_rate_final");
+
+const generateFullChart = () => {
+    const undiscoveredPercent = 1 + (fundiscoveredResources.value / 100);
+    modelVariables.pop.carryingCapacityBil = fCarryingCap.value * utils.BILLION();
+    modelVariables.demand.rateOfIncrease = fdemand_rate.value * 0.01;
+    modelVariables.renewables.rateOfIncrease = frenewables_rate.value * 0.01;
+
+    // Demand
+    let peakDemand = 
+        (utils.last(modelVariables.demand.history)/utils.last(modelVariables.pop.history) *
+        fperCapDemand.value) *
+        (modelVariables.pop.carryingCapacityBil);
+
+    const lookAhead = 150;
+
+    modelVariables.demand.prediction = popuation_calc.modeling_population_growth(
+            lookAhead,
+            utils.last(modelVariables.demand.history),
+            peakDemand,
+            modelVariables.demand.rateOfIncrease);
+
+    modelVariables.endYear =  modelVariables.startYear + modelVariables.historicalYears + lookAhead;
+
+    const getPeakIndex = (elem) => {
+        return popuation_calc.simple_interest_function(
+            utils.last(modelVariables[elem].history),
+            -1,
+            fyearsUntilTurnAround.value,
+            modelVariables[elem].rateOfIncrease
+        );
+    };
+
+    if (modelVariables.oil.peakIndex > 0) {
+        modelVariables.oil.peakIndex = getPeakIndex("oil");
+    }
+
+    modelVariables.oil.prediction  = energy_calc.peakThenDecline(utils.last(modelVariables.oil.history),
+        modelVariables.oil.reserveValue * undiscoveredPercent,
+        modelVariables.oil.peakIndex,
+        modelVariables.oil.rateOfIncrease, lookAhead);
+
+    if (modelVariables.coal.peakIndex > 0) {
+        modelVariables.coal.peakIndex = getPeakIndex("coal");
+    }
+
+    modelVariables.coal.prediction = energy_calc.peakThenDecline(utils.last(modelVariables.coal.history),
+        modelVariables.coal.reserveValue * undiscoveredPercent,
+        modelVariables.coal.peakIndex,
+        modelVariables.coal.rateOfIncrease, lookAhead);
+    
+    if (modelVariables.natural_gas.peakIndex > 0) {
+        modelVariables.natural_gas.peakIndex = getPeakIndex("natural_gas");
+    }
+
+    modelVariables.natural_gas.prediction = energy_calc.peakThenDecline(utils.last(modelVariables.natural_gas.history),
+        modelVariables.natural_gas.reserveValue * undiscoveredPercent,
+        modelVariables.natural_gas.peakIndex,
+        modelVariables.natural_gas.rateOfIncrease, lookAhead);
+
+    modelVariables.renewables.prediction =
+        energy_calc.steadyIncreaseConsumption(
+            utils.last(modelVariables.renewables.history),
+            modelVariables.renewables.rateOfIncrease,
+            modelVariables.endYear - (modelVariables.startYear + modelVariables.historicalYears));
+
+    generateEnergyChart(fullChart, true, true, true, true, true, 400);
+};
+
+generateFullChart();
+
+fundiscoveredResources.onchange = () => {
+    generateFullChart();
+};
+
+fyearsUntilTurnAround.onchange = () => {
+    generateFullChart();
+};
+
+fperCapDemand.onchange = () => {
+    generateFullChart();
+};
+
+fCarryingCap.onchange = () => {
+    generateFullChart();
+};
+
+fdemand_rate.onchange = () => {
+    generateFullChart();
+};
+
+frenewables_rate.onchange = () => {
+    generateFullChart();
+};
