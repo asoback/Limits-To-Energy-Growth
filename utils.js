@@ -61,6 +61,14 @@ export const utils = {
             years.push(x.toString());
         }
         return years;
-    }
+    },
 
+    isElementInView: function(element) {
+        const pageTop = document.documentElement.scrollTop;
+        const pageBottom = pageTop + window.innerHeight;
+        const elementTop = element.offsetTop;
+        const elementBottom = elementTop + element.scrollHeight;
+
+        return elementBottom <= pageBottom;
+    }
 };

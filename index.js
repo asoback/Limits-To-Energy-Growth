@@ -15,6 +15,13 @@ const renewables_rate_input = document.getElementById("renewables_rate");
 const renewables_rate_input_2 = document.getElementById("renewables_rate_2");
 const demand_rate_input =  document.getElementById("demand_rate");
 
+window.addEventListener('scroll', function triggerSideBar() {
+    if(utils.isElementInView(myPredictionChart)) {
+        console.log('You have scrolled to the first prediction chart');
+        window.removeEventListener('scroll', triggerSideBar);
+    }
+});
+
 const modelVariables = {
     startYear : 1980,
     historicalYears: 36,
