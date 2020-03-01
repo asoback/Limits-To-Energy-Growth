@@ -14,10 +14,12 @@ const pop_carrying_cap_input = document.getElementById("max_pop");
 const renewables_rate_input = document.getElementById("renewables_rate");
 const renewables_rate_input_2 = document.getElementById("renewables_rate_2");
 const demand_rate_input =  document.getElementById("demand_rate");
+const sCarryCap = document.getElementById("sCarryCap");
+const sPopPeakYear = document.getElementById("sPopPeakYear");
 
 window.addEventListener('scroll', function triggerSideBar() {
     if(utils.isElementInView(myPredictionChart)) {
-        console.log('You have scrolled to the first prediction chart');
+        document.getElementById('sidebarStats').style.display = 'block';
         window.removeEventListener('scroll', triggerSideBar);
     }
 });
@@ -188,7 +190,7 @@ const generatePopulationChart = (num_years, carrying_cap) => {
 
     // Stable pop
     for (let i = 0; i < modelVariables.pop.prediction.length; ++i) {
-        if (modelVariables.pop.prediction[i] >= carrying_cap * 0.99) {
+        if (modelVariables.pop.prediction[i] >= modelVariables.pop.carryingCapacityBil * 0.99) {
             document.getElementById('stable_pop').textContent = i + 2016;
             modelVariables.pop.stablePopYear =  i + 2016;
             break;
@@ -206,6 +208,10 @@ const recalculate_pop_predictions = () => {
     const num_years = pop_num_years_input.value;
     const carrying_cap = pop_carrying_cap_input.value * 1000000000;
     generatePopulationChart(num_years, carrying_cap);
+
+    sCarryCap.textContent = "Population peaks at " + modelVariables.pop.carryingCapacityBil / utils.BILLION() + " Billion";
+	sPopPeakYear.textContent = "Stable population in year " + modelVariables.pop.stablePopYear;
+
 };
 
 pop_num_years_input.onchange = recalculate_pop_predictions;
@@ -491,15 +497,6 @@ compoundSubmit.onclick = () => {
     compoundDescription.textContent = 'Or roughly ' + utils.int_to_string(final_pop);
 };
 
-
-
-
-
-
-
-
-
-
 //
 // Demand by pop
 //
@@ -744,6 +741,8 @@ fperCapDemand.onchange = () => {
 
 fCarryingCap.onchange = () => {
     generateFullChart();
+    sCarryCap.textContent = "Population peaks at " + modelVariables.pop.carryingCapacityBil / utils.BILLION() + " Billion";
+	sPopPeakYear.textContent = "Stable population in year " + modelVariables.pop.stablePopYear;
 };
 
 fdemand_rate.onchange = () => {

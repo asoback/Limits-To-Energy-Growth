@@ -117,19 +117,23 @@
 					Just play with this compound interest calculator.
 				</p>
 				<div>
-					<label for="compoundStartPop">Starting Population</label>
-					<input id="compoundStartPop" type="number" value="7800000000">
-					<label for="compoundYear">Starting Year</label>
-					<input id="compoundYear" type="number" value="2020">
-					<label for="compoundYearsToGrow">Years to Grow</label>
-					<input id="compoundYearsToGrow" type="number" value="100">
-					<label for="compoundRate">Rate</label>
-					<input id="compoundRate" type="number" value="0.012" step=".001">
+					<div class="container">
+						<div class="grid-column form-group">
+							<label for="compoundStartPop">Starting Population</label>
+							<input id="compoundStartPop" type="number" value="7800000000">
+							<label for="compoundYear">Starting Year</label>
+							<input id="compoundYear" type="number" value="2020">
+							<label for="compoundYearsToGrow">Years to Grow</label>
+							<input id="compoundYearsToGrow" type="number" value="100">
+							<label for="compoundRate">Rate</label>
+							<input id="compoundRate" type="number" value="0.012" step=".001">
+						</div>
+						<div class="grid-column">
+							<p id="compoundOutput"></p>
+							<p id="compoundDescription"></p>
+						</div>
+					</div>
 					<button id="compoundSubmit">Go</button>
-				</div>
-				<div>
-					<p id="compoundOutput"></p>
-					<p id="compoundDescription"></p>
 				</div>
 				<hr>
 			</div>
@@ -244,7 +248,10 @@
 		</div>
 	</div>
 	<div class="grid-column grid-column-right">
-		<div></div>
+		<div id="sidebarStats">
+			<p id="sCarryCap"></p>
+			<p id="sPopPeakYear"></p>
+		</div>
 	</div>
 	</div>
 </body>
