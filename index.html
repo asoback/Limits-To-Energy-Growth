@@ -216,18 +216,30 @@
 				<canvas class="chart" id="fullChart"></canvas>
 			</div>
 			<div>
-				<label for="demand_rate_final">Rate of growth for demand</label>
-				<input id="demand_rate_final" type="number" value="2" max="5" min="0" step=".1">%
-				<label for="renewables_rate_final">Rate of growth for renewables and nuclear</label>
-				<input id="renewables_rate_final" type="number" value="2" max="5" min="0" step=".1">%
-				<label for="max_popFinal">Population Carrying Capacity (Billions)</label>
-				<input id="max_popFinal" type="number" value="10">
-				<label for="per_cap_demandFinal">Per Capita Energy Consumption. </label>
-				<input id="per_cap_demandFinal" type="number" value="1">
-				<label for="undiscoveredFinal">Extra undiscovered Resouces</label>
-				<input id="undiscoveredFinal" type="number" value="25" step="25">%
-				<label for="yearsUntilTurnAroundFinal">Years until turn around</label>
-				<input id="yearsUntilTurnAroundFinal" type="number" min="0" value="20" step="10">
+				<div class="container">
+					<div class="grid-column form-group">
+						<label for="max_popFinal">Population Carrying Capacity (Billions)</label>
+						<input id="max_popFinal" type="number" value="10">
+					</div>
+					<div class="grid-column form-group">
+						<label for="per_cap_demandFinal">Per Capita Energy Consumption. </label>
+						<input id="per_cap_demandFinal" type="number" value="1">
+					</div>
+				</div>
+				<div class="container">
+					<div class="grid-column form-group">
+						<label for="demand_rate_final">Rate of growth for demand</label>
+						<input id="demand_rate_final" type="number" value="2" max="5" min="0" step=".1">%
+						<label for="renewables_rate_final">Rate of growth for renewables and nuclear</label>
+						<input id="renewables_rate_final" type="number" value="2" max="5" min="0" step=".1">%
+					</div>
+					<div class="grid-column form-group">
+						<label for="undiscoveredFinal">Extra undiscovered Resouces</label>
+						<input id="undiscoveredFinal" type="number" value="25" step="25">%
+						<label for="yearsUntilTurnAroundFinal">Years until turn around</label>
+						<input id="yearsUntilTurnAroundFinal" type="number" min="0" value="20" step="10">
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
