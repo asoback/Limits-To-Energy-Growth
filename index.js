@@ -19,7 +19,7 @@ const sPopPeakYear = document.getElementById("sPopPeakYear");
 
 window.addEventListener('scroll', function triggerSideBar() {
     if(utils.isElementInView(myPredictionChart)) {
-        document.getElementById('sidebarStats').style.display = 'block';
+        document.getElementById('sidebarStats-pop').style.display = 'block';
         window.removeEventListener('scroll', triggerSideBar);
     }
 });
@@ -90,6 +90,29 @@ const modelVariables = {
     
 };
 
+const setPopulationCapacity = (cap, num_years) => {
+    modelVariables.pop.carryingCapacityBil = cap * utils.BILLION();
+    
+    // Calculate predicted populations
+    const less_years = 2018 - 1980; // No predictions for data we'll see.
+    const starting_pop = utils.last(modelVariables.pop.history); // Latest data
+    // Latest year growth rate
+    const starting_rate =  modelVariables.pop.lastRate;
+    // Actual population data
+    const predicted_pop_data = popuation_calc.modeling_population_growth(num_years - less_years, starting_pop, modelVariables.pop.carryingCapacityBil, starting_rate);
+    modelVariables.pop.prediction = predicted_pop_data;
+
+    // Stable pop
+    for (let i = 0; i < modelVariables.pop.prediction.length; ++i) {
+        if (modelVariables.pop.prediction[i] >= modelVariables.pop.carryingCapacityBil * 0.99) {
+            modelVariables.pop.stablePopYear =  i + 2016;
+            sCarryCap.textContent = "Population peaks at " + modelVariables.pop.carryingCapacityBil / utils.BILLION() + " Billion";
+            sPopPeakYear.textContent = 'Stable population in year ' + modelVariables.pop.stablePopYear;
+            break;
+        }
+    }
+};
+
 /**
     populate the model energy data.
  */
@@ -157,22 +180,14 @@ const generateChart = (chartDiv, data, type = 'line', options = {}) => {
 
 // Generate Chart
 const generatePopulationChart = (num_years, carrying_cap) => {
-    modelVariables.pop.carryingCapacityBil = carrying_cap;
+    setPopulationCapacity(carrying_cap, num_years);
+    document.getElementById('stable_pop').textContent = modelVariables.pop.stablePopYear;
 
     const data = {};
-    // make years
     data.labels = utils.get_years_array(num_years, modelVariables.startYear);
-    
-    // Calculate predicted populations
-    const less_years = 2018 - 1980; // No predictions for data we'll see.
-    const starting_pop = utils.last(modelVariables.pop.history); // Latest data
-    // Latest year growth rate
-    const starting_rate =  modelVariables.pop.lastRate;
-    // Actual population data
-    const predicted_pop_data = popuation_calc.modeling_population_growth(num_years - less_years, starting_pop, carrying_cap, starting_rate);
-    modelVariables.pop.prediction = predicted_pop_data;
+    // make years
     const pop_data = modelVariables.pop.history;
-    const whole_pop_data = pop_data.concat(predicted_pop_data);
+    const whole_pop_data = pop_data.concat(modelVariables.pop.prediction);
     data.datasets = [
         {
             label: 'Real Population',
@@ -188,30 +203,17 @@ const generatePopulationChart = (num_years, carrying_cap) => {
 
     generateChart(PopulationChart, data);
 
-    // Stable pop
-    for (let i = 0; i < modelVariables.pop.prediction.length; ++i) {
-        if (modelVariables.pop.prediction[i] >= modelVariables.pop.carryingCapacityBil * 0.99) {
-            document.getElementById('stable_pop').textContent = i + 2016;
-            modelVariables.pop.stablePopYear =  i + 2016;
-            break;
-        }
-    }
+    
 };
 
 // Initial Chart (10 Billion prediction)
-
-generatePopulationChart(modelVariables.endYear - modelVariables.startYear, modelVariables.pop.carryingCapacityBil * utils.BILLION());
-pop_carrying_cap_input.vaue = modelVariables.endYear - modelVariables.startYear;
+generatePopulationChart(modelVariables.endYear - modelVariables.startYear,  pop_carrying_cap_input.value);
 
 // Bind buttons
 const recalculate_pop_predictions = () => {
     const num_years = pop_num_years_input.value;
-    const carrying_cap = pop_carrying_cap_input.value * 1000000000;
+    const carrying_cap = pop_carrying_cap_input.value;
     generatePopulationChart(num_years, carrying_cap);
-
-    sCarryCap.textContent = "Population peaks at " + modelVariables.pop.carryingCapacityBil / utils.BILLION() + " Billion";
-	sPopPeakYear.textContent = "Stable population in year " + modelVariables.pop.stablePopYear;
-
 };
 
 pop_num_years_input.onchange = recalculate_pop_predictions;
@@ -659,8 +661,11 @@ const fdemand_rate = document.getElementById("demand_rate_final");
 const frenewables_rate = document.getElementById("renewables_rate_final");
 
 const generateFullChart = () => {
+    const lookAhead = 150;
+    const num_years = lookAhead + (2018-1980);
     const undiscoveredPercent = 1 + (fundiscoveredResources.value / 100);
-    modelVariables.pop.carryingCapacityBil = fCarryingCap.value * utils.BILLION();
+
+    setPopulationCapacity(fCarryingCap.value, num_years);
     modelVariables.demand.rateOfIncrease = fdemand_rate.value * 0.01;
     modelVariables.renewables.rateOfIncrease = frenewables_rate.value * 0.01;
 
@@ -669,8 +674,6 @@ const generateFullChart = () => {
         (utils.last(modelVariables.demand.history)/utils.last(modelVariables.pop.history) *
         fperCapDemand.value) *
         (modelVariables.pop.carryingCapacityBil);
-
-    const lookAhead = 150;
 
     modelVariables.demand.prediction = popuation_calc.modeling_population_growth(
             lookAhead,
@@ -741,8 +744,6 @@ fperCapDemand.onchange = () => {
 
 fCarryingCap.onchange = () => {
     generateFullChart();
-    sCarryCap.textContent = "Population peaks at " + modelVariables.pop.carryingCapacityBil / utils.BILLION() + " Billion";
-	sPopPeakYear.textContent = "Stable population in year " + modelVariables.pop.stablePopYear;
 };
 
 fdemand_rate.onchange = () => {
