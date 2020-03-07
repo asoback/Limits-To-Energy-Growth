@@ -113,6 +113,12 @@ const setPopulationCapacity = (cap, num_years) => {
     }
 };
 
+
+// TODO: Going to look for when demand is > 5% of supply, and when supply gets close to demand again, withing given time frame, and add to sidebar.
+const recalculateCollapseAndRecovery = () => {
+
+};
+
 /**
     populate the model energy data.
  */
