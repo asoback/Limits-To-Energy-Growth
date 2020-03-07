@@ -149,9 +149,9 @@ cite p {
 }
 
 #sidebarStats-pop {
-  position: fixed;
-  color: white;
-  font-weight: bold;
-  padding-left: 3px;
+  display: none;
+}
+
+#sidebarStats-collapse {
   display: none;
 }

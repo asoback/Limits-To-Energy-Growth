@@ -20,6 +20,9 @@ const sPopPeakYear = document.getElementById("sPopPeakYear");
 window.addEventListener('scroll', function triggerSideBar() {
     if(utils.isElementInView(myPredictionChart)) {
         document.getElementById('sidebarStats-pop').style.display = 'block';
+    }
+    if(utils.isElementInView(peakDemandChart)) {
+        document.getElementById('sidebarStats-collapse').style.display = 'block';
         window.removeEventListener('scroll', triggerSideBar);
     }
 });
@@ -115,8 +118,29 @@ const setPopulationCapacity = (cap, num_years) => {
 
 
 // TODO: Going to look for when demand is > 5% of supply, and when supply gets close to demand again, withing given time frame, and add to sidebar.
-const recalculateCollapseAndRecovery = () => {
-
+const recalculateCollapseAndRecovery = () => { 
+    let collapse = false;
+    let recovery = false;
+    for (let i = 0; i < modelVariables.demand.prediction.length; i++){
+        const sum = modelVariables.oil.prediction[i] + 
+            modelVariables.coal.prediction[i] + 
+            modelVariables.natural_gas.prediction[i] + 
+            modelVariables.renewables.prediction[i];
+        if (sum < modelVariables.demand.prediction[i] * 0.9 && !collapse) {
+            collapse = true;
+            document.getElementById('sCollapseYear').textContent = "Collapse occurs around year " + (2018 + i);
+        }
+        if (collapse && sum >= modelVariables.demand.prediction[i] && !recovery) {
+            recovery = true;
+            document.getElementById('sRecoverYear').textContent = "Recovery occurs around year " + (2018 + i);
+        }
+    }
+    if (collapse && !recovery) {
+        document.getElementById('sRecoverYear').textContent = "No recovery in the forseable future";
+    }
+    if (!collapse) {
+        document.getElementById('sCollapseYear').textContent = "Collapse was successfully avoided";
+    }
 };
 
 /**
@@ -467,6 +491,7 @@ const generateMyPredictionChart = () => {
     
 
     generateEnergyChart(myPredictionChart, true, true, true, true, true, 500);
+    recalculateCollapseAndRecovery();
 };
 
 generateMyPredictionChart();
@@ -563,6 +588,7 @@ const generateDemandPerCapitaChart = () => {
             modelVariables.endYear - (modelVariables.startYear + modelVariables.historicalYears));
 
     generateEnergyChart(peakDemandChart, true, true, true, true, true, 400);
+    recalculateCollapseAndRecovery();
 };
 
 generateDemandPerCapitaChart();
@@ -641,6 +667,7 @@ const generateUndiscoveredChart = () => {
             modelVariables.endYear - (modelVariables.startYear + modelVariables.historicalYears));
 
     generateEnergyChart(undiscoveredChart, true, true, true, true, true, 400);
+    recalculateCollapseAndRecovery();
 };
 
 generateUndiscoveredChart();
@@ -732,6 +759,7 @@ const generateFullChart = () => {
             modelVariables.endYear - (modelVariables.startYear + modelVariables.historicalYears));
 
     generateEnergyChart(fullChart, true, true, true, true, true, 400);
+    recalculateCollapseAndRecovery();
 };
 
 generateFullChart();
